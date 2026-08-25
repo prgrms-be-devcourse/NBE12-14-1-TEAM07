@@ -21,32 +21,32 @@ public class Nbe12141Team07Application {
         SpringApplication.run(Nbe12141Team07Application.class, args);
     }
 
-    @Bean
-    CommandLineRunner initData(
-            UsersRepository usersRepository,
-            ProductRepository productRepository,
-            OrdersRepository ordersRepository
-    ) {
-        return args -> {
-            Users user = new Users("test@test.com", "USER");
-            usersRepository.save(user);
-
-            Product product = new Product("테스트 원두", 5000);
-            productRepository.save(product);
-
-            Orders order = new Orders(user);
-
-            OrdersDetail detail = new OrdersDetail(
-                    order,
-                    product,
-                    2,
-                    5000
-            );
-
-            order.addOrderDetail(detail);
-
-            ordersRepository.save(order);
-        };
-    }
+//    @Bean
+//    CommandLineRunner initData(
+//            UsersRepository usersRepository,
+//            ProductRepository productRepository,
+//            OrdersRepository ordersRepository
+//    ) {
+//        return args -> {
+//            Users user = new Users("test@test.com", "USER");
+//            usersRepository.save(user);
+//
+//            Product product = new Product("테스트 원두", 5000);
+//            productRepository.save(product);
+//
+//            Orders order = new Orders(user);
+//
+//            OrdersDetail detail = new OrdersDetail(
+//                    order,
+//                    product,
+//                    2,
+//                    5000
+//            );
+//
+//            order.addOrderDetail(detail);
+//
+//            ordersRepository.save(order);
+//        };
+//    }
 
 }

@@ -22,6 +22,10 @@ public class OrdersDetail extends BaseEntity {
     private int quantity;
     private int price;
 
+    public void updateOrderQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
 
     //수정 구현용 하드코딩 코드
     public OrdersDetail(
