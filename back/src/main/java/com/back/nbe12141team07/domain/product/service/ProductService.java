@@ -2,6 +2,7 @@ package com.back.nbe12141team07.domain.product.service;
 
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
+import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +20,22 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+
     public Product getProductById(int id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("%번 상품이 존재하지 않습니다. ".formatted(id)));
     }
 
+    // 커스텀 Exception 사용
+    public Product findById(int id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
     // 상품 삭제
     public void deleteProduct(int id) {
         // 상품이 존재하는지 확인
-        Product product = getProductById(id);
+        Product product = findById(id);
 
         productRepository.delete(product);
     }
