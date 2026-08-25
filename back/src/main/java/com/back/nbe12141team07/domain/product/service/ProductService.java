@@ -12,10 +12,23 @@ public class ProductService {
     private final ProductRepository productRepository;
 
 
-    public Product createProduct(String name , int price) {
+    public Product createProduct(String name, int price) {
 
         Product product = new Product(name, price);
 
         return productRepository.save(product);
+    }
+
+    public Product getProductById(int id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("%번 상품이 존재하지 않습니다. ".formatted(id)));
+    }
+
+    // 상품 삭제
+    public void deleteProduct(int id) {
+        // 상품이 존재하는지 확인
+        Product product = getProductById(id);
+
+        productRepository.delete(product);
     }
 }

@@ -18,10 +18,10 @@ public class ProductController {
 
     private final ProductService productService;
 
-    record ProductSaveReqBody (
-        @NotBlank(message = "제목을 입력해주세요.")
-        String name,
-        int price
+    record ProductSaveReqBody(
+            @NotBlank(message = "제목을 입력해주세요.")
+            String name,
+            int price
     ) {
     }
 
@@ -37,4 +37,18 @@ public class ProductController {
         );
     }
 
+
+    // DELETE /api/products/{id} - 상품 삭제
+    @DeleteMapping("/{id}")
+    @Transactional
+// 반환할 데이터가 없으므로 Void로 지정
+    public RsData<Void> delete(@PathVariable int id) {
+        productService.deleteProduct(id);
+
+        // RsData의 2개짜리 생성자를 사용하면 데이터는 null로
+        return new RsData<>(
+                "200-1",
+                "%d번 상품이 삭제되었습니다".formatted(id)
+        );
+    }
 }
