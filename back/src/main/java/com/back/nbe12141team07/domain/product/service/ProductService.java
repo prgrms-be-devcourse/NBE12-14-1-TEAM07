@@ -13,17 +13,11 @@ public class ProductService {
     private final ProductRepository productRepository;
 
 
-    public Product createProduct(String name, int price) {
+    public Product createProduct(String name , int price) {
 
         Product product = new Product(name, price);
 
         return productRepository.save(product);
-    }
-
-
-    public Product getProductById(int id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("%번 상품이 존재하지 않습니다. ".formatted(id)));
     }
 
     // 커스텀 Exception 사용

@@ -18,7 +18,7 @@ public class ProductController {
 
     private final ProductService productService;
 
-    record ProductSaveReqBody(
+    record ProductSaveReqBody (
             @NotBlank(message = "제목을 입력해주세요.")
             String name,
             int price
@@ -36,6 +36,7 @@ public class ProductController {
                 new ProductDto(product)
         );
     }
+
     @GetMapping("/{id}")
     public ProductDto detail(@PathVariable int id) {
         Product product = productService.findById(id);
@@ -43,13 +44,10 @@ public class ProductController {
         return new ProductDto(product);
     }
 
-
-
-
     // DELETE /api/products/{id} - 상품 삭제
     @DeleteMapping("/{id}")
     @Transactional
-// 반환할 데이터가 없으므로 Void로 지정
+    // 반환할 데이터가 없으므로 Void로 지정
     public RsData<Void> delete(@PathVariable int id) {
         productService.deleteProduct(id);
 
