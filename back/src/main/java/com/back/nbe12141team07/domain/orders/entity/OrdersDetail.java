@@ -1,4 +1,4 @@
-package com.back.nbe12141team07.domain.order.entity;
+package com.back.nbe12141team07.domain.orders.entity;
 
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.global.jpa.entity.BaseEntity;
@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class OrderDetail extends BaseEntity {
+public class OrdersDetail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order orderId;
+    @JoinColumn(name = "orders_id", nullable = false)
+    private Orders ordersId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
