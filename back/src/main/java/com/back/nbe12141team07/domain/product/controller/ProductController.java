@@ -10,8 +10,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/products")
@@ -39,23 +37,18 @@ public class ProductController {
         );
     }
 
-    @GetMapping
+
+    // DELETE /api/products/{id} - 상품 삭제
+    @DeleteMapping("/{id}")
     @Transactional
-    public List<ProductDto> list() {
-        List<Product> productList = productService.findAll();
+// 반환할 데이터가 없으므로 Void로 지정
+    public RsData<Void> delete(@PathVariable int id) {
+        productService.deleteProduct(id);
 
-        List<ProductDto> productDtoList = productList.stream()
-                .map(ProductDto::new)
-                .toList();
-
-        return productDtoList;
+        // RsData의 2개짜리 생성자를 사용하면 데이터는 null로
+        return new RsData<>(
+                "200-1",
+                "%d번 상품이 삭제되었습니다".formatted(id)
+        );
     }
-
-    @GetMapping("/{id}")
-    public ProductDto detail(@PathVariable int id) {
-        Product product = productService.findById(id);
-
-        return new ProductDto(product);
-    }
-
 }

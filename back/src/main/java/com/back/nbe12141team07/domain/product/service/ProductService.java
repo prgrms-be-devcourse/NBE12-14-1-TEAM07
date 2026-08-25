@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +30,13 @@ public class ProductService {
     public Product findById(int id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+    // 상품 삭제
+    public void deleteProduct(int id) {
+        // 상품이 존재하는지 확인
+        Product product = findById(id);
+
+        productRepository.delete(product);
     }
 }
