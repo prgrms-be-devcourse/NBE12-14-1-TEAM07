@@ -7,6 +7,7 @@ import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,29 @@ public class ProductController {
         return new RsData<>(
                 "201-1",
                 "%d번 글이 성공적으로 등록되었습니다".formatted(product.getId()),
+                new ProductDto(product)
+        );
+    }
+
+    record productModifyReqBody(
+            @NotBlank
+            @Size(min = 2, max = 100)
+            String name,
+            int price
+    ) {
+    }
+
+    @PatchMapping("{id}")
+    @Transactional
+    public RsData<ProductDto> modifyProduct(
+        @PathVariable int id,
+        @RequestBody @Valid productModifyReqBody modifyBody
+    ) {
+        Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
+
+        return new RsData<>(
+                "200-1",
+                "%d번 상품이 수정되었습니다.".formatted(id),
                 new ProductDto(product)
         );
     }

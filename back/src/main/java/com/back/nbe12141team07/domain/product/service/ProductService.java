@@ -18,4 +18,12 @@ public class ProductService {
 
         return productRepository.save(product);
     }
+
+    public Product modifyProduct(int id, String name, int price) {
+        Product product = productRepository.findById(id).get();
+
+        product.updateProduct(name, price);
+
+        return product;
+    }
 }
