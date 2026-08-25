@@ -20,8 +20,8 @@ public class OrdersController {
 
     @DeleteMapping("/{orderId}/details/{detailId}")
     public RsData<Void> cancelDetail(
-        @PathVariable int orderId,
-        @PathVariable int detailId
+            @PathVariable int orderId,
+            @PathVariable int detailId
     ) {
         ordersService.cancelOrderDetail(orderId, detailId);
 
