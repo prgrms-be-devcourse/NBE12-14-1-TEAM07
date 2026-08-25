@@ -18,7 +18,7 @@ public class Orders extends BaseEntity {
     private Users users;
 
     @OneToMany(
-            mappedBy = "ordersId",
+            mappedBy = "orders",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
@@ -29,4 +29,12 @@ public class Orders extends BaseEntity {
         ordersDetails.remove(detail);
     }
 
+    public Orders(Users users) {
+        this.users = users;
+    }
+
+    // ordersDetails을 편하게 추가하기 위한 메서드
+    public void addOrderDetail(OrdersDetail detail) {
+        ordersDetails.add(detail);
+    }
 }

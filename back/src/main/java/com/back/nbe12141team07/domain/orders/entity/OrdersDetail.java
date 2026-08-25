@@ -21,6 +21,13 @@ public class OrdersDetail extends BaseEntity {
 
     private int quantity;
     private int totalPrice;
+
+    public OrdersDetail(Orders orders, Product product, int quantity, int totalPrice) {
+        this.orders = orders;
+        this.product = product;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+    }
 }
 
 

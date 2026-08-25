@@ -1,12 +1,16 @@
 package com.back.nbe12141team07.domain.orders.controller;
 
+import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
+import com.back.nbe12141team07.domain.orders.dto.OrdersDto;
+import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.service.OrdersService;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -24,6 +28,24 @@ public class OrdersController {
         return new RsData<>(
                 "200-1",
                 "상세 주문이 취소되었습니다."
+        );
+    }
+
+    record OrdersSaveReqBody (
+            String email,
+            List<OrdersDetailRequest> ordersDetails
+    ) {
+    }
+
+    @PostMapping
+    @Transactional
+    public RsData<OrdersDto> save(@Valid @RequestBody OrdersSaveReqBody reqBody) {
+        Orders orders = ordersService.createOrders(reqBody.email(), reqBody.ordersDetails);
+
+        return new RsData<>(
+                "201-1",
+                "%d번 주문이 성공적으로 등록되었습니다.".formatted(orders.getId()),
+                new OrdersDto(orders)
         );
     }
 }
