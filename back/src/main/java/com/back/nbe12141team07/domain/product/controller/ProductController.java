@@ -7,8 +7,11 @@ import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -39,26 +42,33 @@ public class ProductController {
     }
 
     record productModifyReqBody(
-            @NotBlank
-            @Size(min = 2, max = 100)
+            @NotBlank(message = "원두 이름을 입력해주세요.")
+            @Size(min = 2, max = 50)
             String name,
+
+            @NotBlank(message = "가겨을 입력해주세요.")
+            @Positive(message = "가격은 0보다 커야 합니다.")
             int price
     ) {
     }
 
     @PatchMapping("{id}")
     @Transactional
-    public RsData<ProductDto> modifyProduct(
+    public ResponseEntity<?> modifyProduct(
         @PathVariable int id,
         @RequestBody @Valid productModifyReqBody modifyBody
     ) {
         Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
 
-        return new RsData<>(
-                "200-1",
-                "%d번 상품이 수정되었습니다.".formatted(id),
-                new ProductDto(product)
-        );
+        if(product == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ProductDto(product));
     }
 
 }
