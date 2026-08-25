@@ -21,6 +21,20 @@ public class OrdersDetail extends BaseEntity {
 
     private int quantity;
     private int price;
+
+
+    //수정 구현용 하드코딩 코드
+    public OrdersDetail(
+            Orders orders,
+            Product product,
+            int quantity,
+            int price
+    ) {
+        this.ordersId = orders;
+        this.productId = product;
+        this.quantity = quantity;
+        this.price = price;
+    }
 }
 
 
