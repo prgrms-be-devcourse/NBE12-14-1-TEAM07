@@ -37,4 +37,11 @@ public class ProductController {
         );
     }
 
+    @GetMapping("/{id}")
+    public ProductDto detail(@PathVariable int id) {
+        Product product = productService.findById(id);
+
+        return new ProductDto(product);
+    }
+
 }
