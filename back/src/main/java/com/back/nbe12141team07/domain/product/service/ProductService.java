@@ -15,7 +15,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
 
-    public Product createProduct(String name, int price) {
+    public Product createProduct(String name , int price) {
 
         Product product = new Product(name, price);
 
@@ -33,6 +33,13 @@ public class ProductService {
         return productRepository.findAllByOrderByCreateDateDesc();
     }
 
+    public Product modifyProduct(int id, String name, int price) {
+        Product product = productRepository.findById(id).get();
+
+        product.updateProduct(name, price);
+
+        return product;
+    }
     // 상품 삭제
     public void deleteProduct(int id) {
         // 상품이 존재하는지 확인
@@ -41,3 +48,5 @@ public class ProductService {
         productRepository.delete(product);
     }
 }
+}
+
