@@ -1,6 +1,5 @@
 package com.back.nbe12141team07.domain.orders.entity;
 
-import com.back.nbe12141team07.domain.users.entity.User;
 import com.back.nbe12141team07.domain.users.entity.Users;
 import com.back.nbe12141team07.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
