@@ -42,33 +42,32 @@ public class ProductController {
     }
 
     record productModifyReqBody(
-            @NotBlank(message = "원두 이름을 입력해주세요.")
-            @Size(min = 2, max = 50)
             String name,
-
-            @NotBlank(message = "가겨을 입력해주세요.")
-            @Positive(message = "가격은 0보다 커야 합니다.")
             int price
     ) {
     }
 
     @PatchMapping("{id}")
     @Transactional
-    public ResponseEntity<?> modifyProduct(
+    public RsData<ProductDto> modifyProduct(
         @PathVariable int id,
         @RequestBody @Valid productModifyReqBody modifyBody
     ) {
+
         Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
 
-        if(product == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
+        return new RsData<>(
+                "200-1"
+                ,"%d번 상품이 수정되었습니다",
+                new ProductDto(product)
+        );
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new ProductDto(product));
+    @GetMapping("/{id}")
+    public ProductDto detail(@PathVariable int id) {
+        Product product = productService.findById(id);
+
+        return new ProductDto(product);
     }
 
 }
