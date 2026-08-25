@@ -53,8 +53,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductDto detail(@PathVariable int id) {
-        Product product = productService.findById(id)
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
+        Product product = productService.findById(id);
 
         return new ProductDto(product);
     }
