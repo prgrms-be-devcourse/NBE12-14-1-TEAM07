@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -37,11 +39,16 @@ public class ProductController {
         );
     }
 
-    @GetMapping("/{id}")
-    public ProductDto detail(@PathVariable int id) {
-        Product product = productService.findById(id);
+    @GetMapping
+    @Transactional
+    public List<ProductDto> list() {
+        List<Product> productList = productService.findAll();
 
-        return new ProductDto(product);
+        List<ProductDto> productDtoList = productList.stream()
+                .map(ProductDto::new)
+                .toList();
+
+        return productDtoList;
     }
 
 }
