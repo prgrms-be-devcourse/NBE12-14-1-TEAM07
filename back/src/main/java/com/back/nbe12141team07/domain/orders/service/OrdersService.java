@@ -1,4 +1,56 @@
 package com.back.nbe12141team07.domain.orders.service;
 
+import com.back.nbe12141team07.domain.orders.controller.OrdersController;
+import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
+import com.back.nbe12141team07.domain.orders.entity.Orders;
+import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
+import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
+import com.back.nbe12141team07.domain.product.entity.Product;
+import com.back.nbe12141team07.domain.product.service.ProductService;
+import com.back.nbe12141team07.domain.users.entity.Users;
+import com.back.nbe12141team07.domain.users.repository.UsersRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
 public class OrdersService {
+
+    private final OrdersRepository ordersRepository;
+    private final ProductService productService;
+    private final UsersRepository usersRepository;
+
+    public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
+
+        // 이메일과 권한("users")을 넣어 users 생성
+        Users users = usersRepository.save(
+                new Users(email, "users"));
+
+        // 생성한 users로 Orders 생성
+        Orders orders = new Orders(users);
+
+        // Request의 Orderdetails 순회
+        for (OrdersDetailRequest detailRequest : ordersDetails) {
+
+            Product product = productService.findById(
+                    detailRequest.productId()
+            );
+
+            int price = product.getPrice() * detailRequest.quantity();
+
+            OrdersDetail ordersDetail = new OrdersDetail(
+                    orders,
+                    product,
+                    detailRequest.quantity(),
+                    price
+            );
+
+            orders.addOrderDetail(ordersDetail);
+        }
+
+        return ordersRepository.save(orders);
+    }
+
 }
