@@ -51,4 +51,11 @@ public class ProductController {
         return productDtoList;
     }
 
+    @GetMapping("/{id}")
+    public ProductDto detail(@PathVariable int id) {
+        Product product = productService.findById(id).get();
+
+        return new ProductDto(product);
+    }
+
 }
