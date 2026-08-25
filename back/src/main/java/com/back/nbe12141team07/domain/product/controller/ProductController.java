@@ -18,10 +18,10 @@ public class ProductController {
 
     private final ProductService productService;
 
-    record ProductSaveReqBody (
-        @NotBlank(message = "제목을 입력해주세요.")
-        String name,
-        int price
+    record ProductSaveReqBody(
+            @NotBlank(message = "제목을 입력해주세요.")
+            String name,
+            int price
     ) {
     }
 
@@ -36,7 +36,12 @@ public class ProductController {
                 new ProductDto(product)
         );
     }
+    @GetMapping("/{id}")
+    public ProductDto detail(@PathVariable int id) {
+        Product product = productService.findById(id);
 
+        return new ProductDto(product);
+    }
 
     // DELETE /api/products/{id} - 상품 삭제
     @DeleteMapping("/{id}")
