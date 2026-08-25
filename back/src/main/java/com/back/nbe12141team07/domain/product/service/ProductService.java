@@ -2,6 +2,7 @@ package com.back.nbe12141team07.domain.product.service;
 
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
+import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +27,9 @@ public class ProductService {
         return productRepository.findAllByOrderByCreateDateDesc();
     }
 
-    public Optional<Product> findById(int id) {
-
-        return productRepository.findById(id);
+    // 커스텀 Exception 사용
+    public Product findById(int id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 }
