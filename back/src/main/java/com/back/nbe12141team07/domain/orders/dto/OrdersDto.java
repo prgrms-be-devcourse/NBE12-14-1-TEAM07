@@ -12,16 +12,16 @@ public record OrdersDto(
         List<OrdersDetailDto> ordersDetails
 ) {
     public OrdersDto(Orders orders) {
-            this(
-                    orders.getId(),
-                    orders.getCreateDate(),
-                    orders.getModifyDate(),
-                    orders.getUsers().getEmail(),
-                    // OrdersDetails를 Stream을 사용하여 List로 반환
-                    orders.getOrdersDetails()
-                            .stream()
-                            .map(OrdersDetailDto::new)
-                            .toList()
+        this(
+                orders.getId(),
+                orders.getCreateDate(),
+                orders.getModifyDate(),
+                orders.getUsers().getEmail(),
+                // OrdersDetails를 Stream을 사용하여 List로 반환
+                orders.getOrdersDetails()
+                        .stream()
+                        .map(OrdersDetailDto::new)
+                        .toList()
         );
     }
 }

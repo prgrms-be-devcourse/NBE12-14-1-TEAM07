@@ -25,9 +25,9 @@ public class ProductController {
     private final ProductService productService;
 
     record ProductSaveReqBody (
-        @NotBlank(message = "제목을 입력해주세요.")
-        String name,
-        int price
+            @NotBlank(message = "제목을 입력해주세요.")
+            String name,
+            int price
     ) {
     }
 
@@ -38,7 +38,7 @@ public class ProductController {
 
         return new RsData<>(
                 "201-1",
-                "%d번 글이 성공적으로 등록되었습니다".formatted(product.getId()),
+                "%d번 상품이 성공적으로 등록되었습니다".formatted(product.getId()),
                 new ProductDto(product)
         );
     }

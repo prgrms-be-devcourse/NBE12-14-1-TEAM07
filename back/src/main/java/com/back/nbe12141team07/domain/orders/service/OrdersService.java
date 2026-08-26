@@ -15,6 +15,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -24,6 +27,46 @@ public class OrdersService {
     private final OrdersRepository ordersRepository;
     private final ProductService productService;
     private final UsersRepository usersRepository;
+
+    private static final LocalTime CUTOFF = LocalTime.of(14, 0);
+
+    public LocalDate resolveDeliveryDate(LocalDateTime base) {
+        LocalDate date = base.toLocalDate();
+        return base.toLocalTime().isBefore(CUTOFF) ? date : date.plusDays(1);
+    }
+
+    private LocalDateTime startOf(LocalDate deliveryDate) {
+        return deliveryDate.minusDays(1).atTime(CUTOFF);
+    }
+
+    private LocalDateTime endOf(LocalDate deliveryDate) {
+        return deliveryDate.atTime(CUTOFF);
+    }
+
+    public List<Orders> getUserOrders(String email) {
+        LocalDate deliveryDate = resolveDeliveryDate(LocalDateTime.now());
+        return ordersRepository.findByUsersEmailAndCreateDateGreaterThanEqualAndCreateDateLessThan(email, startOf(deliveryDate), endOf(deliveryDate));
+    }
+
+    public List<Orders> getUsersOrders(LocalDate deliveryDate) {
+        return ordersRepository.findByCreateDateGreaterThanEqualAndCreateDateLessThan(
+                startOf(deliveryDate), endOf(deliveryDate));
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public OrdersDetail modifyOrders(int id, int orderDetailId, int quantity) {
+        Orders order = ordersRepository.findById(id).get();
+
+        OrdersDetail detail = order.getOrdersDetails()
+                .stream()
+                .filter(d -> d.getId() == orderDetailId)
+                .findFirst()
+                .orElseThrow();
+
+        detail.updateOrderQuantity(quantity);
+
+        return detail;
+    }
 
     public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
 
