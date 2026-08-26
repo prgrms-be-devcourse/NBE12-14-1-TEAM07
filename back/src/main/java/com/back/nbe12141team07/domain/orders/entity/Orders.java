@@ -24,4 +24,12 @@ public class Orders extends BaseEntity {
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.ORDERED;
+
+    public void complete() {
+        this.status = OrderStatus.COMPLETED;
+    }
+
 }
