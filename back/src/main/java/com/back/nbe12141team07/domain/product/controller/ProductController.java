@@ -48,17 +48,16 @@ public class ProductController {
     }
 
     @PatchMapping("{id}")
-    @Transactional
     public RsData<ProductDto> modifyProduct(
         @PathVariable int id,
         @RequestBody @Valid productModifyReqBody modifyBody
     ) {
 
-        Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
+        Product product = productService.modifyProduct(id, modifyBody.name(), modifyBody.price());
 
         return new RsData<>(
                 "200-1"
-                ,"%d번 상품이 수정되었습니다",
+                ,"%d번 상품이 수정되었습니다".formatted(id),
                 new ProductDto(product)
         );
     }
