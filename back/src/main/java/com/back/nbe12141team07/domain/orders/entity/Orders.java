@@ -24,4 +24,9 @@ public class Orders extends BaseEntity {
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    //상세 주문 삭제
+    public void removeOrderDetail(OrdersDetail detail) {
+        ordersDetails.remove(detail);
+    }
+
 }

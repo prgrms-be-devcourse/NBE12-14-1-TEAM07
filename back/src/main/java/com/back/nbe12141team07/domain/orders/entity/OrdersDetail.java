@@ -20,7 +20,8 @@ public class OrdersDetail extends BaseEntity {
     private Product productId;
 
     private int quantity;
-    private int price;
+    private int totalPrice;
+
 }
 
 

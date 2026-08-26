@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 public class Users extends BaseEntity {
     private String email;
     private String role;
+
 }
