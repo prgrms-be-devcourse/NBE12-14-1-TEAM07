@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework:spring-expression:7.0.9" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework" artifactId="spring-expression" version="7.0.9" baseVersion="7.0.9" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-expression/7.0.9/9452ece85b97fa3e208046cc3a7e985c314b0034/spring-expression-7.0.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-expression/7.0.9/97eaa431105da3b7a1af567b8d9e4167cc94bcc7/spring-expression-7.0.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

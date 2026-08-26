@@ -10,4 +10,5 @@ public class ProductNotFoundException extends BusinessException {
                 "상품을 찾을 수 없습니다. id: " + id
         );
     }
+
 }

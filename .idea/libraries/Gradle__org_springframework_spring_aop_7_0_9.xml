@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework:spring-aop:7.0.9" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework" artifactId="spring-aop" version="7.0.9" baseVersion="7.0.9" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/7.0.9/35f68fd8cdf30444e18835cec152f2619c4c46c7/spring-aop-7.0.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-aop/7.0.9/9dcfc798f52b62ffe4fec47405834d25b08968da/spring-aop-7.0.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

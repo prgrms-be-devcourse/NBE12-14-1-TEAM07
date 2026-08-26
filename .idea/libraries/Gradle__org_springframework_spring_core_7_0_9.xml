@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework:spring-core:7.0.9" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework" artifactId="spring-core" version="7.0.9" baseVersion="7.0.9" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/7.0.9/e03c619fc5b26931973277f5ba65ae47967a20e3/spring-core-7.0.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.springframework/spring-core/7.0.9/1f8da21ff69d644207fb9cde58144aa284331ed3/spring-core-7.0.9-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
