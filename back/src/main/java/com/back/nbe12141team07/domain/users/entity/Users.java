@@ -12,9 +12,4 @@ public class Users extends BaseEntity {
     private String email;
     private String role;
 
-    //수정 하드코딩용 추가
-    public Users(String email, String role) {
-        this.email = email;
-        this.role = role;
-    }
 }

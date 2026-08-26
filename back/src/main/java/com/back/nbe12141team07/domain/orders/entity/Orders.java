@@ -24,13 +24,4 @@ public class Orders extends BaseEntity {
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
-    //수정 하드코딩용 추가
-    public Orders(Users users) {
-        this.users = users;
-    }
-
-    public void addOrderDetail(OrdersDetail ordersDetail) {
-        this.ordersDetails.add(ordersDetail);
-    }
-
 }

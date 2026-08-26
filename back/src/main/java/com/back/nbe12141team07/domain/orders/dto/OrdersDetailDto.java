@@ -10,7 +10,7 @@ public record OrdersDetailDto(
 ) {
     public OrdersDetailDto(OrdersDetail ordersDetail) {
         this(
-                ordersDetail.getOrdersId().getId(),
+                ordersDetail.getOrders().getId(),
                 ordersDetail.getId(),
                 ordersDetail.getQuantity()
         );
