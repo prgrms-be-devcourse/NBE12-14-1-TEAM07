@@ -13,15 +13,14 @@ public class OrdersDetail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orders_id", nullable = false)
-    private Orders ordersId;
+    private Orders orders;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     private int quantity;
     private int totalPrice;
-
 }
 
 
