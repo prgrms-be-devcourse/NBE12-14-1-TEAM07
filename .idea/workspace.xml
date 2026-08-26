@@ -4,21 +4,144 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2dfcb0da-ef85-446b-9767-108e86461478" name="Changes" comment="" />
+    <list default="true" id="2dfcb0da-ef85-446b-9767-108e86461478" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/back/nbe12141team07/domain/orders/controller/OrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/back/nbe12141team07/domain/orders/controller/OrdersController.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="CodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
     </projectState>
+    <projectState path="$PROJECT_DIR$/back">
+      <ProjectState />
+    </projectState>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0,
-  "fromUser": false
-}]]></component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand />
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;yoo-sihun&quot;
+  }
+}</component>
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="order/process/back" />
+                    <option name="lastUsedInstant" value="1787704258" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="develop" />
+                    <option name="lastUsedInstant" value="1787704257" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/prgrms-be-devcourse/NBE12-14-1-TEAM07.git&quot;,
+    &quot;accountId&quot;: &quot;70fc90fa-bead-4b8a-a631-2b11a6537ed3&quot;
+  }
+}</component>
+  <component name="KotlinCodeInsightWorkspaceSettings">
+    <option name="optimizeImportsOnTheFly" value="true" />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.4033219834872401" />
+      <entry key="MS500" value="1.9134946442655192" />
+      <entry key="S2" value="2.987769505377729" />
+      <entry key="S5" value="4.296297833505716" />
+      <entry key="S10" value="5.391709627983472" />
+      <entry key="S30" value="6.88136110498998" />
+      <entry key="S60" value="8.125236624576491" />
+      <entry key="M2" value="10.15457427779227" />
+      <entry key="M5" value="12.880151949222226" />
+      <entry key="M10" value="14.266613650064015" />
+      <entry key="M15" value="14.801805334607558" />
+      <entry key="M30" value="15.378485152223123" />
+      <entry key="H1" value="15.683418663971931" />
+      <entry key="H2" value="15.840224966988282" />
+      <entry key="H4" value="15.91973778304809" />
+      <entry key="D1" value="15.986570612905918" />
+      <entry key="W1" value="15.99808023001418" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="0.0" />
+      <entry key="H2" value="0.0" />
+      <entry key="H4" value="0.0" />
+      <entry key="D1" value="0.0" />
+      <entry key="W1" value="0.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.43060754750065416" />
+      <entry key="MS500" value="1.1457723700740825" />
+      <entry key="S2" value="2.5178806559224767" />
+      <entry key="S5" value="3.983777046730969" />
+      <entry key="S10" value="5.18101340521107" />
+      <entry key="S30" value="6.786554321829894" />
+      <entry key="S60" value="8.070747550868717" />
+      <entry key="M2" value="10.12300570844533" />
+      <entry key="M5" value="12.865429247895152" />
+      <entry key="M10" value="14.25873706692836" />
+      <entry key="M15" value="14.796422927133586" />
+      <entry key="M30" value="15.375723490929802" />
+      <entry key="H1" value="15.682019263287893" />
+      <entry key="H2" value="15.839520499226541" />
+      <entry key="H4" value="15.919384341345028" />
+      <entry key="D1" value="15.986511536830339" />
+      <entry key="W1" value="15.998071786414972" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3ILOaGP6A3fYQe16oULXISGNKNJ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -29,32 +152,28 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "order/process/back",
+    "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/ajtwl/NBE12-14-1-TEAM07",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "editor.preferences.import",
+    "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="NBE12-14-1-TEAM07" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="NBE12-14-1-TEAM07" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
     <configuration name="Nbe12141Team07Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
-      <module name="NBE12-14-1-TEAM07.main" />
+      <module name="com.back.NBE12-14-1-TEAM07.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.back.nbe12141team07.Nbe12141Team07Application" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -64,8 +183,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.26222.65" />
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.26222.65" />
+        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.337" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.337" />
       </set>
     </attachedChunks>
   </component>
