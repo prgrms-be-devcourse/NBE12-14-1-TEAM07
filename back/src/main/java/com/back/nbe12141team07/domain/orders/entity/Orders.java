@@ -24,4 +24,18 @@ public class Orders extends BaseEntity {
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    //상세 주문 삭제
+    public void removeOrderDetail(OrdersDetail detail) {
+        ordersDetails.remove(detail);
+    }
+
+    //데이터 삽입 하드코딩용 코드
+    public Orders(Users users) {
+        this.users = users;
+    }
+
+    public void addOrderDetail(OrdersDetail ordersDetail) {
+        this.ordersDetails.add(ordersDetail);
+    }
+
 }
