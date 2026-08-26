@@ -28,7 +28,7 @@ public class Nbe12141Team07Application {
 //            OrdersRepository ordersRepository
 //    ) {
 //        return args -> {
-//            Users user = new Users("test@test.com", "USER");
+//            Users user = new Users("test3@test.com", "USER");
 //            usersRepository.save(user);
 //
 //            Product product = new Product("테스트 원두", 5000);
@@ -36,14 +36,21 @@ public class Nbe12141Team07Application {
 //
 //            Orders order = new Orders(user);
 //
-//            OrdersDetail detail = new OrdersDetail(
+//            OrdersDetail detail1 = new OrdersDetail(
 //                    order,
 //                    product,
 //                    2,
-//                    5000
+//                    10000
+//            );
+//                OrdersDetail detail2 = new OrdersDetail(
+//                    order,
+//                    product,
+//                    3,
+//                    15000
 //            );
 //
-//            order.addOrderDetail(detail);
+//            order.addOrderDetail(detail1);
+//            order.addOrderDetail(detail2);
 //
 //            ordersRepository.save(order);
 //        };
