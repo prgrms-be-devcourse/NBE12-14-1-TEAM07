@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,10 +20,31 @@ public class Orders extends BaseEntity {
     private Users users;
 
     @OneToMany(
-            mappedBy = "ordersId",
+            mappedBy = "orders",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    //상세 주문 삭제
+    public void removeOrderDetail(OrdersDetail detail) {
+        ordersDetails.remove(detail);
+    }
+
+    public Orders(Users users) {
+        this.users = users;
+    }
+
+    // ordersDetails을 편하게 추가하기 위한 메서드
+    public void addOrderDetail(OrdersDetail detail) {
+        ordersDetails.add(detail);
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.ORDERED;
+
+    public void complete() {
+        this.status = OrderStatus.COMPLETED;
+    }
 }

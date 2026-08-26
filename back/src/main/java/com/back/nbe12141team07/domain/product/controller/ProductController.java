@@ -7,8 +7,14 @@ import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -19,9 +25,9 @@ public class ProductController {
     private final ProductService productService;
 
     record ProductSaveReqBody (
-        @NotBlank(message = "제목을 입력해주세요.")
-        String name,
-        int price
+            @NotBlank(message = "제목을 입력해주세요.")
+            String name,
+            int price
     ) {
     }
 
@@ -32,16 +38,66 @@ public class ProductController {
 
         return new RsData<>(
                 "201-1",
-                "%d번 글이 성공적으로 등록되었습니다".formatted(product.getId()),
+                "%d번 상품이 성공적으로 등록되었습니다".formatted(product.getId()),
+                new ProductDto(product)
+        );
+    }
+    @GetMapping("/{id}")
+    public ProductDto detail(@PathVariable int id) {
+        Product product = productService.findById(id);
+        return new ProductDto(product);
+    }
+
+    @GetMapping
+    @Transactional
+    public List<ProductDto> list() {
+        List<Product> productList = productService.findAll();
+
+        List<ProductDto> productDtoList = productList.stream()
+                .map(ProductDto::new)
+                .toList();
+
+        return productDtoList;
+    }
+
+    record productModifyReqBody(
+            @NotBlank(message = "원두 이름을 입력해주세요.")
+            @Size(min = 2, max = 50)
+            String name,
+
+            @Positive(message = "가격은 0보다 커야 합니다.")
+            int price
+    ) {
+    }
+
+    @PatchMapping("{id}")
+    @Transactional
+    public RsData<ProductDto> modifyProduct(
+        @PathVariable int id,
+        @RequestBody @Valid productModifyReqBody modifyBody
+    ) {
+
+        Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
+
+        return new RsData<>(
+                "200-1"
+                ,"%d번 상품이 수정되었습니다",
                 new ProductDto(product)
         );
     }
 
-    @GetMapping("/{id}")
-    public ProductDto detail(@PathVariable int id) {
-        Product product = productService.findById(id);
+    // DELETE /api/products/{id} - 상품 삭제
+    @DeleteMapping("/{id}")
+    @Transactional
+    // 반환할 데이터가 없으므로 Void로 지정
+    public RsData<Void> delete(@PathVariable int id) {
+        productService.deleteProduct(id);
 
-        return new ProductDto(product);
+        // RsData의 2개짜리 생성자를 사용하면 데이터는 null로
+        return new RsData<>(
+                "200-1",
+                "%d번 상품이 삭제되었습니다".formatted(id)
+        );
     }
 
 }

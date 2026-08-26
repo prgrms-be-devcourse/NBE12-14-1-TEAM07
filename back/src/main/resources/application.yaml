@@ -26,3 +26,7 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
     org.hibernate.orm.jdbc.extract: TRACE
     org.springframework.transaction.interceptor: TRACE
+
+# 관리자 이메일 등록
+admin:
+  email: ${ADMIN_EMAIL:admin@test.com}
