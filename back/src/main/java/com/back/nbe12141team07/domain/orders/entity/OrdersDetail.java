@@ -22,6 +22,9 @@ public class OrdersDetail extends BaseEntity {
     private int quantity;
     private int totalPrice;
 
+    @Enumerated(EnumType.STRING)
+    private OrderDetailStatus status = OrderDetailStatus.ORDERED;
+
     public void updateOrder(Product product, int quantity) {
         this.product = product;
         this.quantity = quantity;
@@ -33,6 +36,10 @@ public class OrdersDetail extends BaseEntity {
         this.product = product;
         this.quantity = quantity;
         this.totalPrice = totalPrice;
+    }
+
+    public void cancel() {
+        this.status = OrderDetailStatus.CANCELED;
     }
 }
 
