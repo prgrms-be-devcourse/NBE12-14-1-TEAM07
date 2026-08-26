@@ -129,4 +129,15 @@ public class OrdersController {
                 new OrdersDetailDto(orderDetail)
         );
     }
+
+    // DELETE /api/orders/{id} : 주문 삭제
+    @DeleteMapping("/{id}")
+    @Transactional
+    public RsData<Void> delete(@PathVariable int id) {
+        ordersService.deleteOrders(id);
+        return new RsData<>(
+                "200-1",
+                "%d번 주문이 삭제되었습니다.".formatted(id)
+        );
+    }
 }

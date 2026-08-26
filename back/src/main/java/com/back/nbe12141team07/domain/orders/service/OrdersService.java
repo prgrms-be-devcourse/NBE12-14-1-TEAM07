@@ -121,4 +121,13 @@ public class OrdersService {
         return ordersRepository.findById(id)
                 .orElseThrow(() -> new OrdersNotFoundException(id));
     }
+
+    //주문 삭제
+    //Orders에 cascade = ALL, orphanRemoval = true이 걸려있기 때문에,
+    // Orders를 삭제하면 OrdersDetail도 같이 삭제됨
+    public void deleteOrders(int id) {
+        Orders orders = findById(id);
+
+        ordersRepository.delete(orders);
+    }
 }
