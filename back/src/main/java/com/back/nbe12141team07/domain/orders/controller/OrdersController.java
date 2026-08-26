@@ -111,17 +111,22 @@ public class OrdersController {
         );
     }
 
-    @PatchMapping("/{id}")
+    record OrderModifyReqBody(
+            int quantity
+    ) {
+    }
+    @PatchMapping("/{orderId}/details/{detailId}")
     public RsData<OrdersDetailDto> modifyOrder(
-            @PathVariable int id,
+            @PathVariable int orderId,
+            @PathVariable int detailId,
             @RequestBody OrderModifyReqBody orderModifyBody
     ) {
-        OrdersDetail order = ordersService.modifyOrders(id, orderModifyBody.orderDetailId, orderModifyBody.quantity);
+        OrdersDetail orderDetail = ordersService.modifyOrders(orderId, detailId, orderModifyBody.quantity());
 
         return new RsData<OrdersDetailDto>(
                 "200-1",
                 "주문이 수정되었습니다",
-                new OrdersDetailDto(order)
+                new OrdersDetailDto(orderDetail)
         );
     }
 }
