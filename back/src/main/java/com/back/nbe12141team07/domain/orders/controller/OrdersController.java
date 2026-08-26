@@ -20,6 +20,7 @@ public class OrdersController {
 
     @PostMapping("/{date}/complete")
     public RsData<Integer> complete(
+            // 문자열 자동으로 LocalDtae객체로 변환해서 파라미터 넣기.
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         int count = ordersService.completeOrders(date);
