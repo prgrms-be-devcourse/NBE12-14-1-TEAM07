@@ -22,8 +22,10 @@ public class OrdersDetail extends BaseEntity {
     private int quantity;
     private int totalPrice;
 
-    public void updateOrderQuantity(int quantity) {
+    public void updateOrder(Product product, int quantity) {
+        this.product = product;
         this.quantity = quantity;
+        this.totalPrice = product.getPrice()*quantity;
     }
 
     public OrdersDetail(Orders orders, Product product, int quantity, int totalPrice) {

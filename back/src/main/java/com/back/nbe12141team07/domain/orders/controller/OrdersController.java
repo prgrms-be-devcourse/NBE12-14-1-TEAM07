@@ -1,5 +1,6 @@
 package com.back.nbe12141team07.domain.orders.controller;
 
+import com.back.nbe12141team07.domain.orders.dto.OrderModifyRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailDto;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDto;
@@ -111,22 +112,21 @@ public class OrdersController {
         );
     }
 
-    record OrderModifyReqBody(
-            int quantity
-    ) {
-    }
     @PatchMapping("/{orderId}")
-    public RsData<OrdersDetailDto> modifyOrder(
+    public RsData<List<OrdersDetailDto>> modifyOrder(
             @PathVariable int orderId,
-            @PathVariable int detailId,
-            @RequestBody OrderModifyReqBody orderModifyBody
-    ) {
-        OrdersDetail orderDetail = ordersService.modifyOrders(orderId, detailId, orderModifyBody.quantity());
+            @RequestBody OrderModifyRequest modifyReqBody
+            ) {
+        List<OrdersDetail> orderDetail = ordersService.modifyOrders(orderId, modifyReqBody);
 
-        return new RsData<OrdersDetailDto>(
+        List<OrdersDetailDto> ordersDetailDtoList = orderDetail.stream()
+                .map(d -> new OrdersDetailDto(d))
+                .toList();
+
+        return new RsData<>(
                 "200-1",
                 "주문이 수정되었습니다",
-                new OrdersDetailDto(orderDetail)
+                ordersDetailDtoList
         );
     }
 
