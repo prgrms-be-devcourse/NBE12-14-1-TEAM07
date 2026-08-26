@@ -35,19 +35,23 @@ public class OrdersService {
         // Request의 Orderdetails 순회
         for (OrdersDetailRequest detailRequest : ordersDetails) {
 
+            // 상품 꺼내기
             Product product = productService.findById(
                     detailRequest.productId()
             );
 
-            int price = product.getPrice() * detailRequest.quantity();
+            // totalPrice = 상품가격 * 수량
+            int totalPrice = product.getPrice() * detailRequest.quantity();
 
+            // ordersDetail 생성
             OrdersDetail ordersDetail = new OrdersDetail(
                     orders,
                     product,
                     detailRequest.quantity(),
-                    price
+                    totalPrice
             );
 
+            // orders의 List<OrdersDetail>에 add
             orders.addOrderDetail(ordersDetail);
         }
 
