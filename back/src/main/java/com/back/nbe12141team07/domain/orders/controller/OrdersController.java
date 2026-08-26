@@ -48,4 +48,14 @@ public class OrdersController {
                 new OrdersDto(orders)
         );
     }
+
+    @GetMapping("/{id}")
+    @Transactional
+    public OrdersDto detail(@PathVariable int id) {
+        Orders orders = ordersService.findById(id);
+
+        return new OrdersDto(orders);
+    }
+
+
 }
