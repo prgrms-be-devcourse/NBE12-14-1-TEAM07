@@ -140,6 +140,8 @@ public class OrdersService {
         List<Orders> orders = ordersRepository
                 .findByCreateDateGreaterThanEqualAndCreateDateLessThan(start, end);
 
+        orders.forEach(Orders::complete);
+
         return orders.size();
     }
 }

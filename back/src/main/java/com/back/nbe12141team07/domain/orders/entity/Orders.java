@@ -39,4 +39,12 @@ public class Orders extends BaseEntity {
     public void addOrderDetail(OrdersDetail detail) {
         ordersDetails.add(detail);
     }
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.ORDERED;
+
+    public void complete() {
+        this.status = OrderStatus.COMPLETED;
+    }
 }
