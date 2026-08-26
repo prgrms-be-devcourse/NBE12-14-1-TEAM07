@@ -30,6 +30,8 @@ public class OrdersService {
 
     private static final LocalTime CUTOFF = LocalTime.of(14, 0);
 
+    private static final int CUTOFF_HOUR = 14;
+
     public LocalDate resolveDeliveryDate(LocalDateTime base) {
         LocalDate date = base.toLocalDate();
         return base.toLocalTime().isBefore(CUTOFF) ? date : date.plusDays(1);
@@ -129,5 +131,15 @@ public class OrdersService {
         Orders orders = findById(id);
 
         ordersRepository.delete(orders);
+    }
+
+    public int completeOrders(LocalDate date) {
+        LocalDateTime start = date.minusDays(1).atTime(CUTOFF_HOUR, 0);
+        LocalDateTime end = date.atTime(CUTOFF_HOUR, 0);
+
+        List<Orders> orders = ordersRepository
+                .findByCreateDateGreaterThanEqualAndCreateDateLessThan(start, end);
+
+        return orders.size();
     }
 }

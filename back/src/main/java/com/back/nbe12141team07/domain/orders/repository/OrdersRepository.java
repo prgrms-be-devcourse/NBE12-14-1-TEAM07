@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 public interface OrdersRepository extends JpaRepository<Orders, Integer> {
     /*
     findBy
@@ -17,4 +18,5 @@ public interface OrdersRepository extends JpaRepository<Orders, Integer> {
     */
     List<Orders> findByUsersEmailAndCreateDateGreaterThanEqualAndCreateDateLessThan(String email, LocalDateTime start, LocalDateTime end);
     List<Orders> findByCreateDateGreaterThanEqualAndCreateDateLessThan(LocalDateTime start, LocalDateTime end);
+
 }

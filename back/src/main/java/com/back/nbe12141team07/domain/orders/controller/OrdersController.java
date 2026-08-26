@@ -140,4 +140,17 @@ public class OrdersController {
                 "%d번 주문이 삭제되었습니다.".formatted(id)
         );
     }
+
+    @PostMapping("/{date}/complete")
+    public RsData<Integer> complete(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        int count = ordersService.completeOrders(date);
+
+        return new RsData<>(
+                "200-1",
+                "%d건의 주문을 조회했습니다. (완료 처리 로직은 아직 없음)".formatted(count),
+                count
+        );
+    }
 }
