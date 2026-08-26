@@ -1,5 +1,6 @@
 package com.back.nbe12141team07.domain.orders.service;
 
+import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
 import com.back.nbe12141team07.domain.users.entity.Users;
@@ -31,7 +32,7 @@ class OrdersServiceTest {
     private UsersRepository usersRepository;
 
     // createDate는 @CreatedDate라 저장 시점에 now()로 덮어써지므로, 저장 후 원하는 값으로 다시 세팅한다
-    private void 주문을_생성한다(LocalDateTime createDate) {
+    private Orders 주문을_생성한다(LocalDateTime createDate) {
         Users users = new Users();
         ReflectionTestUtils.setField(users, "email", "test@test.com");
         ReflectionTestUtils.setField(users, "role", "users");
@@ -42,7 +43,7 @@ class OrdersServiceTest {
         Orders saved = ordersRepository.save(orders);
 
         ReflectionTestUtils.setField(saved, "createDate", createDate);
-        ordersRepository.save(saved);
+        return ordersRepository.save(saved);
     }
 
     @Test
@@ -79,5 +80,26 @@ class OrdersServiceTest {
         int count = ordersService.completeOrders(LocalDate.of(2026, 7, 12));
 
         assertThat(count).isEqualTo(0);
+    }
+
+    @Test
+    void 처리_후_주문_상태가_COMPLETED로_변경된다() {
+        Orders order = 주문을_생성한다(LocalDateTime.of(2026, 7, 11, 14, 0, 0));
+
+        ordersService.completeOrders(LocalDate.of(2026, 7, 12));
+
+        Orders found = ordersRepository.findById(order.getId()).orElseThrow();
+        assertThat(found.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+    }
+
+    @Test
+    void 이미_완료된_주문은_다시_처리되지_않는다() {
+        주문을_생성한다(LocalDateTime.of(2026, 7, 11, 14, 0, 0));
+
+        int firstCount = ordersService.completeOrders(LocalDate.of(2026, 7, 12));
+        int secondCount = ordersService.completeOrders(LocalDate.of(2026, 7, 12));
+
+        assertThat(firstCount).isEqualTo(1);
+        assertThat(secondCount).isEqualTo(0);
     }
 }
