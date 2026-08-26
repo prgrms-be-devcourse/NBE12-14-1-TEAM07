@@ -24,9 +24,10 @@ public class OrdersService {
 
     public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
 
-        // 이메일과 권한("users")을 넣어 users 생성
-        Users users = usersRepository.save(
-                new Users(email, "users"));
+        Users users = usersRepository.findByEmail(email)
+                .orElseGet(() -> usersRepository.save(
+                        new Users(email, "users")
+                ));
 
         // 생성한 users로 Orders 생성
         Orders orders = new Orders(users);
