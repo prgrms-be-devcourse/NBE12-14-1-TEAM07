@@ -14,14 +14,22 @@ import java.util.List;
 public class Orders extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "users_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users users;
 
     @OneToMany(
-            mappedBy = "ordersId",
+            mappedBy = "orders",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    public Orders(Users users) {
+        this.users = users;
+    }
+
+    // ordersDetails을 편하게 추가하기 위한 메서드
+    public void addOrderDetail(OrdersDetail detail) {
+        ordersDetails.add(detail);
+    }
 }

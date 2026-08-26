@@ -11,4 +11,9 @@ import lombok.NoArgsConstructor;
 public class Users extends BaseEntity {
     private String email;
     private String role;
+
+    public Users(String email, String role) {
+        this.email = email;
+        this.role = role;
+    }
 }
