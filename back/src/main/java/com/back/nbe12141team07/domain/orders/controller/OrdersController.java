@@ -1,5 +1,6 @@
 package com.back.nbe12141team07.domain.orders.controller;
 
+import com.back.nbe12141team07.domain.orders.dto.OrdersDetailDto;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDto;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
@@ -10,6 +11,7 @@ import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,10 @@ import java.util.List;
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrdersController {
+
+    @Value("${admin.email}")
+    private String adminEmail;
+
     private final OrdersService ordersService;
 
     @DeleteMapping("/{orderId}/details/{detailId}")
