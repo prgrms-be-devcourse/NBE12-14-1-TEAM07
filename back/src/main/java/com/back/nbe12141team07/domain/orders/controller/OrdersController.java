@@ -97,6 +97,19 @@ public class OrdersController {
         return new OrdersDto(orders);
     }
 
+    // develop에서 추가된 상세 주문 취소
+    @DeleteMapping("/{orderId}/details/{detailId}")
+    public RsData<Void> cancelDetail(
+            @PathVariable int orderId,
+            @PathVariable int detailId
+    ) {
+        ordersService.cancelOrderDetail(orderId, detailId);
+
+        return new RsData<>(
+                "200-1",
+                "상세 주문이 취소되었습니다."
+        );
+    }
 
     record OrderModifyReqBody(
             int orderDetailId,

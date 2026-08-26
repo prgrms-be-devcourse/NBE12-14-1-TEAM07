@@ -35,4 +35,9 @@ public class Orders extends BaseEntity {
     public void addOrderDetail(OrdersDetail detail) {
         ordersDetails.add(detail);
     }
+
+    //상세 주문 삭제
+    public void removeOrderDetail(OrdersDetail detail) {
+        ordersDetails.remove(detail);
+    }
 }

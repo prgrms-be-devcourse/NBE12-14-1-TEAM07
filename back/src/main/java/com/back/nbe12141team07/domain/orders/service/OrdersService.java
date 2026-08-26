@@ -8,6 +8,7 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
+import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
 import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -108,5 +109,20 @@ public class OrdersService {
         detail.updateOrderQuantity(quantity);
 
         return detail;
+    }
+
+    // develop에서 추가된 상세 주문 취소
+    @Transactional
+    public void cancelOrderDetail(int orderId, int detailId) {
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new OrdersNotFoundException(orderId));
+
+        OrdersDetail detail = order.getOrdersDetails()
+                .stream()
+                .filter(d -> d.getId() == detailId)
+                .findFirst()
+                .orElseThrow(() -> new OrdersDetailNotFoundException(orderId, detailId));
+
+        order.removeOrderDetail(detail);
     }
 }
