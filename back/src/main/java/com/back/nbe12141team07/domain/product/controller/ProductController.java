@@ -65,7 +65,6 @@ public class ProductController {
             @Size(min = 2, max = 50)
             String name,
 
-            @NotBlank(message = "가겨을 입력해주세요.")
             @Positive(message = "가격은 0보다 커야 합니다.")
             int price
     ) {
@@ -73,28 +72,24 @@ public class ProductController {
 
     @PatchMapping("{id}")
     @Transactional
-    public ResponseEntity<?> modifyProduct(
+    public RsData<ProductDto> modifyProduct(
         @PathVariable int id,
         @RequestBody @Valid productModifyReqBody modifyBody
     ) {
+
         Product product = productService.modifyProduct(id, modifyBody.name, modifyBody.price);
 
-        if(product == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new ProductDto(product));
+        return new RsData<>(
+                "200-1"
+                ,"%d번 상품이 수정되었습니다",
+                new ProductDto(product)
+        );
     }
-
 
     // DELETE /api/products/{id} - 상품 삭제
     @DeleteMapping("/{id}")
     @Transactional
-// 반환할 데이터가 없으므로 Void로 지정
+    // 반환할 데이터가 없으므로 Void로 지정
     public RsData<Void> delete(@PathVariable int id) {
         productService.deleteProduct(id);
 
@@ -104,4 +99,5 @@ public class ProductController {
                 "%d번 상품이 삭제되었습니다".formatted(id)
         );
     }
+
 }
