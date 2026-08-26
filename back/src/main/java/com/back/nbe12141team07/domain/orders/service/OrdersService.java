@@ -2,6 +2,7 @@ package com.back.nbe12141team07.domain.orders.service;
 
 import com.back.nbe12141team07.domain.orders.controller.OrdersController;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
+import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
@@ -73,8 +74,10 @@ public class OrdersService {
     public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
 
         // 이메일과 권한("users")을 넣어 users 생성
-        Users users = usersRepository.save(
-                new Users(email, "users"));
+        Users users = usersRepository.findByEmail(email)
+                .orElseGet(() -> usersRepository.save(
+                        new Users(email, "users")
+                ));
 
         // 생성한 users로 Orders 생성
         Orders orders = new Orders(users);
