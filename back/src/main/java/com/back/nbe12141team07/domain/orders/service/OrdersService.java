@@ -138,7 +138,7 @@ public class OrdersService {
         LocalDateTime end = date.atTime(CUTOFF_HOUR, 0); // 당일 14:00:00
 
         List<Orders> orders = ordersRepository
-                .findByCreateDateGreaterThanEqualAndCreateDateLessThan(start, end);
+                .findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatus(start, end, OrderStatus.ORDERED);
 
         orders.forEach(Orders::complete);
 
