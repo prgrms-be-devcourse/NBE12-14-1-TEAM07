@@ -13,15 +13,27 @@ public class OrdersDetail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orders_id", nullable = false)
-    private Orders ordersId;
+    private Orders orders;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     private int quantity;
-    private int price;
-}
 
+    // 합계 가격
+    private int totalPrice;
+
+    public void updateOrderQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public OrdersDetail(Orders orders, Product product, int quantity, int totalPrice) {
+        this.orders = orders;
+        this.product = product;
+        this.quantity = quantity;
+        this.totalPrice = totalPrice;
+    }
+}
 
 

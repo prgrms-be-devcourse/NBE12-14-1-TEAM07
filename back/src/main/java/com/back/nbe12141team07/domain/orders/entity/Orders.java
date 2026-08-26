@@ -5,6 +5,9 @@ import com.back.nbe12141team07.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +17,22 @@ import java.util.List;
 public class Orders extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "users_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Users users;
 
     @OneToMany(
-            mappedBy = "ordersId",
+            mappedBy = "orders",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
 
+    public Orders(Users users) {
+        this.users = users;
+    }
+
+    // ordersDetails을 편하게 추가하기 위한 메서드
+    public void addOrderDetail(OrdersDetail detail) {
+        ordersDetails.add(detail);
+    }
 }
