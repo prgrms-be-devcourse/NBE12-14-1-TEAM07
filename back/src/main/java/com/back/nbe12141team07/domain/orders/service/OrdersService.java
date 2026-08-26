@@ -1,5 +1,6 @@
 package com.back.nbe12141team07.domain.orders.service;
 
+import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class OrdersService {
         LocalDateTime end = date.atTime(CUTOFF_HOUR, 0); // 당일 14:00:00
 
         List<Orders> orders = ordersRepository
-                .findByCreateDateGreaterThanEqualAndCreateDateLessThan(start, end);
+                .findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatus(start, end, OrderStatus.ORDERED);
 
         orders.forEach(Orders::complete);
 
