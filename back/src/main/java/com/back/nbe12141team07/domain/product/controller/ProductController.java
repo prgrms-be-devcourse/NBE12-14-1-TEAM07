@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -42,6 +44,19 @@ public class ProductController {
 
         return new ProductDto(product);
     }
+
+    @GetMapping
+    @Transactional
+    public List<ProductDto> list() {
+        List<Product> productList = productService.findAll();
+
+        List<ProductDto> productDtoList = productList.stream()
+                .map(ProductDto::new)
+                .toList();
+
+        return productDtoList;
+    }
+
 
     // DELETE /api/products/{id} - 상품 삭제
     @DeleteMapping("/{id}")

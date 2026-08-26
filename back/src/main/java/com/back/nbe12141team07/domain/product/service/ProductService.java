@@ -6,6 +6,8 @@ import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -24,6 +26,11 @@ public class ProductService {
     public Product findById(int id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+
+    public List<Product> findAll() {
+        return productRepository.findAllByOrderByCreateDateDesc();
     }
 
     // 상품 삭제
