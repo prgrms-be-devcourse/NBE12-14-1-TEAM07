@@ -30,7 +30,7 @@ public class OrdersService {
 
     private static final LocalTime CUTOFF = LocalTime.of(14, 0);
 
-    private static final int CUTOFF_HOUR = 14;
+    private static final int CUTOFF_HOUR = 14; // 14시 기준점
 
     public LocalDate resolveDeliveryDate(LocalDateTime base) {
         LocalDate date = base.toLocalDate();
@@ -134,8 +134,8 @@ public class OrdersService {
     }
 
     public int completeOrders(LocalDate date) {
-        LocalDateTime start = date.minusDays(1).atTime(CUTOFF_HOUR, 0);
-        LocalDateTime end = date.atTime(CUTOFF_HOUR, 0);
+        LocalDateTime start = date.minusDays(1).atTime(CUTOFF_HOUR, 0); // 전날 14:00:00
+        LocalDateTime end = date.atTime(CUTOFF_HOUR, 0); // 당일 14:00:00
 
         List<Orders> orders = ordersRepository
                 .findByCreateDateGreaterThanEqualAndCreateDateLessThan(start, end);
