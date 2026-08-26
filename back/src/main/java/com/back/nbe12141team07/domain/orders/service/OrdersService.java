@@ -9,6 +9,8 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
+import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
+import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -57,4 +59,8 @@ public class OrdersService {
         return ordersRepository.save(orders);
     }
 
+    public Orders findById(int id) {
+        return ordersRepository.findById(id)
+                .orElseThrow(() -> new OrdersNotFoundException(id));
+    }
 }

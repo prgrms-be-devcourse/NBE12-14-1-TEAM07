@@ -4,6 +4,8 @@ import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDto;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.service.OrdersService;
+import com.back.nbe12141team07.domain.product.dto.ProductDto;
+import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -37,5 +39,14 @@ public class OrdersController {
                 new OrdersDto(orders)
         );
     }
+
+    @GetMapping("/{id}")
+    @Transactional
+    public OrdersDto detail(@PathVariable int id) {
+        Orders orders = ordersService.findById(id);
+
+        return new OrdersDto(orders);
+    }
+
 
 }
