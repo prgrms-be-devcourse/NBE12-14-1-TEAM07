@@ -29,15 +29,4 @@ public class Orders extends BaseEntity {
         ordersDetails.remove(detail);
     }
 
-    public void addOrderDetail(OrdersDetail detail) {
-        this.ordersDetails.add(detail);
-    }
-
-    //데이터 삽입 하드코딩용 코드
-    public Orders(Users users) {
-        this.users = users;
-    }
-
-
-
 }
