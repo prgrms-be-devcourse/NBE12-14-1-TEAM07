@@ -1,121 +1,157 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
 
-interface AdminOrderRow {
-  id: string;
-  email: string;
-  items: string;
-  amount: string;
-  time: string;
-  status: "처리 가능" | "처리 완료" | "처리 불가";
+const API_BASE = "http://localhost:8080";
+const ADMIN_EMAIL = "admin@test.com";
+
+type OrderStatus = "ORDERED" | "COMPLETED";
+type OrderDetailStatus = "ORDERED" | "CANCELED" | "COMPLETED";
+
+interface OrdersDetailDto {
+  id: number;
+  ordersId: number;
+  productId: number;
+  quantity: number;
+  totalPrice: number;
+  status: OrderDetailStatus;
 }
 
-const INITIAL_ADMIN_ORDERS: AdminOrderRow[] = [
-  {
-    id: "GC-2608-0405",
-    email: "mina.park@naver.com",
-    items: "예가체프 200g ×1",
-    amount: "16,500원",
-    time: "07:58",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0412",
-    email: "yunchan@naver.com",
-    items: "예가체프 200g ×2",
-    amount: "30,000원",
-    time: "09:12",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0418",
-    email: "doyun.kim@naver.com",
-    items: "산토스 500g ×1",
-    amount: "27,000원",
-    time: "10:44",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0421",
-    email: "seoa.jung@naver.com",
-    items: "수프리모 200g ×1",
-    amount: "15,000원",
-    time: "11:30",
-    status: "처리 완료",
-  },
-  {
-    id: "GC-2608-0427",
-    email: "hana.lee@naver.com",
-    items: "안티구아 200g ×2",
-    amount: "32,000원",
-    time: "13:05",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0433",
-    email: "jinwoo.seo@naver.com",
-    items: "예가체프 외 1건",
-    amount: "27,500원",
-    time: "13:58",
-    status: "처리 완료",
-  },
-  {
-    id: "GC-2608-0440",
-    email: "sumin.choi@naver.com",
-    items: "산토스 200g ×1",
-    amount: "14,000원",
-    time: "14:21",
-    status: "처리 불가",
-  },
-  {
-    id: "GC-2608-0446",
-    email: "gaeun.yoon@naver.com",
-    items: "수프리모 500g ×1",
-    amount: "29,000원",
-    time: "15:07",
-    status: "처리 불가",
-  },
-];
+interface OrdersDto {
+  id: number;
+  createDate: string;
+  modifyDate: string;
+  email: string;
+  orderStatus: OrderStatus;
+  ordersDetails: OrdersDetailDto[];
+}
+
+interface ProductDto {
+  id: number;
+  name: string;
+  price: number;
+}
+
+interface RsData<T> {
+  resultCode: string;
+  msg: string;
+  data: T;
+}
+
+function toISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function formatDateLabel(dateStr: string): string {
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const d = new Date(`${dateStr}T00:00:00`);
+  return `${dateStr} (${days[d.getDay()]})`;
+}
+
+function formatTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function formatItems(details: OrdersDetailDto[], productMap: Map<number, string>): string {
+  const active = details.filter((d) => d.status !== "CANCELED");
+  if (active.length === 0) return "-";
+  const first = productMap.get(active[0].productId) ?? `상품 #${active[0].productId}`;
+  if (active.length === 1) {
+    return `${first} ×${active[0].quantity}`;
+  }
+  return `${first} 외 ${active.length - 1}건`;
+}
+
+function formatAmount(details: OrdersDetailDto[]): string {
+  const total = details
+    .filter((d) => d.status !== "CANCELED")
+    .reduce((sum, d) => sum + d.totalPrice, 0);
+  return `${total.toLocaleString()}원`;
+}
+
+function toStatusLabel(status: OrderStatus): "처리 가능" | "처리 완료" {
+  return status === "COMPLETED" ? "처리 완료" : "처리 가능";
+}
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<AdminOrderRow[]>(INITIAL_ADMIN_ORDERS);
+  const [selectedDate, setSelectedDate] = useState<string>(toISODate(new Date()));
+  const [orders, setOrders] = useState<OrdersDto[]>([]);
+  const [productMap, setProductMap] = useState<Map<number, string>>(new Map());
   const [filter, setFilter] = useState<string>("전체");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter calculations
-  const totalCount = orders.length;
-  const completedCount = orders.filter((r) => r.status === "처리 완료").length;
-  const readyCount = orders.filter((r) => r.status === "처리 가능").length;
-  const blockedCount = orders.filter((r) => r.status === "처리 불가").length;
+  useEffect(() => {
+    fetch(`${API_BASE}/api/products`)
+      .then((res) => res.json())
+      .then((products: ProductDto[]) => {
+        setProductMap(new Map(products.map((p) => [p.id, p.name])));
+      })
+      .catch(() => {});
+  }, []);
 
-  const filteredOrders = orders.filter((r) => {
+  const fetchOrders = (date: string) => {
+    setLoading(true);
+    setError(null);
+    fetch(`${API_BASE}/api/orders?email=${encodeURIComponent(ADMIN_EMAIL)}&deliveryDate=${date}`)
+      .then((res) => res.json())
+      .then((res: RsData<OrdersDto[]>) => {
+        setOrders(res.data);
+      })
+      .catch(() => {
+        setError("주문 목록을 불러오지 못했습니다.");
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchOrders(selectedDate);
+  }, [selectedDate]);
+
+  const rows = orders.map((o) => ({
+    id: o.id,
+    email: o.email,
+    items: formatItems(o.ordersDetails, productMap),
+    amount: formatAmount(o.ordersDetails),
+    time: formatTime(o.createDate),
+    status: toStatusLabel(o.orderStatus),
+  }));
+
+  const totalCount = rows.length;
+  const completedCount = rows.filter((r) => r.status === "처리 완료").length;
+  const readyCount = rows.filter((r) => r.status === "처리 가능").length;
+  const blockedCount = 0;
+
+  const filteredRows = rows.filter((r) => {
     if (filter === "전체") return true;
     return r.status === filter;
   });
 
-  // Batch process all ready orders
   const handleBatchProcess = () => {
     if (readyCount === 0) {
       alert("현재 처리 가능한 주문이 없습니다.");
       return;
     }
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.status === "처리 가능" ? { ...r, status: "처리 완료" } : r
-      )
-    );
-    alert(`처리 가능한 ${readyCount}건의 주문이 일괄 처리 완료되었습니다.`);
-  };
-
-  // Single process
-  const handleSingleProcess = (id: string) => {
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: "처리 완료" } : r
-      )
-    );
+    fetch(
+      `${API_BASE}/api/orders/${selectedDate}/complete?email=${encodeURIComponent(ADMIN_EMAIL)}`,
+      { method: "POST" }
+    )
+      .then((res) => res.json())
+      .then((res: RsData<number>) => {
+        alert(`처리 가능한 ${res.data}건의 주문이 일괄 처리 완료되었습니다.`);
+        fetchOrders(selectedDate);
+      })
+      .catch(() => {
+        alert("일괄 처리에 실패했습니다.");
+      });
   };
 
   return (
@@ -128,10 +164,16 @@ export default function AdminOrdersPage() {
         {/* Toolbar & Date */}
         <div className="p-[26px_28px_0]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-3.5">
-            <div className="flex items-center gap-2.5 h-[42px] px-4 bg-white border border-field rounded-[9px] text-[14px] font-semibold text-ink shadow-2xs">
-              2026-08-27 (목)
+            <label className="flex items-center gap-2.5 h-[42px] px-4 bg-white border border-field rounded-[9px] text-[14px] font-semibold text-ink shadow-2xs cursor-pointer relative">
+              {formatDateLabel(selectedDate)}
               <span className="text-[10px] text-faint">▼</span>
-            </div>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </label>
             <div className="font-mono text-[11.5px] text-faint">
               처리 기준 · 당일 14:00
             </div>
@@ -203,31 +245,38 @@ export default function AdminOrdersPage() {
         {/* Orders Table */}
         <div className="m-[16px_28px_24px] bg-white border border-line rounded-[12px] overflow-hidden shadow-2xs">
           {/* Table Header */}
-          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
+          <div className="grid grid-cols-[90px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
             <span>주문번호</span>
             <span>이메일</span>
             <span>상품</span>
             <span>금액</span>
             <span>시각</span>
             <span>상태</span>
-            <span></span>
           </div>
 
           {/* Table Rows */}
           <div className="divide-y divide-line3">
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <div className="py-12 text-center text-muted text-[13px]">
+                불러오는 중...
+              </div>
+            ) : error ? (
+              <div className="py-12 text-center text-warn-fg text-[13px]">
+                {error}
+              </div>
+            ) : filteredRows.length === 0 ? (
               <div className="py-12 text-center text-muted text-[13px]">
                 해당 조건의 주문이 없습니다.
               </div>
             ) : (
-              filteredOrders.map((row) => (
+              filteredRows.map((row) => (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
+                  className="grid grid-cols-[90px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
                 >
                   {/* Order ID */}
                   <span className="font-mono text-[12px] text-muted truncate">
-                    {row.id}
+                    #{row.id}
                   </span>
 
                   {/* Email */}
@@ -251,27 +300,6 @@ export default function AdminOrdersPage() {
                   {/* Status Pill */}
                   <div>
                     <StatusPill status={row.status} />
-                  </div>
-
-                  {/* Action Button */}
-                  <div>
-                    {row.status === "처리 가능" ? (
-                      <button
-                        type="button"
-                        onClick={() => handleSingleProcess(row.id)}
-                        className="w-full py-1 bg-ink text-white rounded-lg text-[12px] font-semibold hover:bg-black transition-colors cursor-pointer"
-                      >
-                        처리
-                      </button>
-                    ) : row.status === "처리 완료" ? (
-                      <div className="text-[12.5px] text-disabled text-center">
-                        완료됨
-                      </div>
-                    ) : (
-                      <div className="w-full py-1 bg-chipbg text-disabled rounded-lg text-[12px] font-semibold text-center select-none">
-                        익일 처리
-                      </div>
-                    )}
                   </div>
                 </div>
               ))
