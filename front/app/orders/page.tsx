@@ -6,7 +6,7 @@ import Logo from "@/components/Logo";
 import StatusPill from "@/components/StatusPill";
 import QtyStepper from "@/components/QtyStepper";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { fetchMyOrders } from "@/lib/api";
+import { fetchMyOrders, deleteOrder } from "@/lib/api";
 import { UserOrdersDto } from "@/lib/types";
 
 interface OrderItem {
@@ -127,10 +127,33 @@ function OrdersContent() {
     alert("주문 수정 API가 아직 연결되지 않았습니다.");
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTargetId) return;
-    setDeleteModalOpen(false);
-    alert("주문 삭제 API가 아직 연결되지 않았습니다.");
+
+    try {
+      await deleteOrder(Number(deleteTargetId));
+
+      // 삭제 후 다건 조회를 다시 실행해 서버 상태와 맞춤
+      const data = await fetchMyOrders(userEmail);
+      const rows = data.map(toOrderRecord);
+      setOrders(rows);
+
+      // 삭제한 주문이 선택 상태였다면 첫 번째 주문으로 이동
+      if (selectedId === deleteTargetId) {
+        if (rows.length > 0) {
+          setSelectedId(rows[0].id);
+          setEditItems(rows[0].items.map((it) => ({ ...it })));
+        } else {
+          setSelectedId("");
+          setEditItems([]);
+        }
+      }
+    } catch {
+      alert("주문 삭제에 실패했습니다.");
+    } finally {
+      setDeleteModalOpen(false);
+      setDeleteTargetId(null);
+    }
   };
 
   if (isAdmin) return null;
