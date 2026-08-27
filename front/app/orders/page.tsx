@@ -1,110 +1,111 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import StatusPill from "@/components/StatusPill";
 import QtyStepper from "@/components/QtyStepper";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { fetchMyOrders } from "@/lib/api";
+import { UserOrdersDto } from "@/lib/types";
 
 interface OrderItem {
-  name: string;
-  weight: string;
+  detailId: number;
+  productId: number;
   qty: number;
   price: number;
 }
 
 interface OrderRecord {
   id: string;
-  date: string;
   summary: string;
   amount: number;
   status: "처리 대기" | "처리 완료";
   items: OrderItem[];
-  email: string;
-  address: string;
 }
 
-const CATALOG = [
-  { name: "에티오피아 예가체프", weight: "200g", price: 13500 },
-  { name: "콜롬비아 수프리모", weight: "200g", price: 12000 },
-  { name: "과테말라 안티구아", weight: "200g", price: 14500 },
-  { name: "브라질 산토스", weight: "200g", price: 11000 },
-];
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
 
-const INITIAL_ORDERS: OrderRecord[] = [
-  {
-    id: "GC-2608-0412",
-    date: "8월 27일 09:12",
-    summary: "에티오피아 예가체프 200g ×2",
-    amount: 30000,
-    status: "처리 대기",
-    email: "yunchan@naver.com",
-    address: "서울 마포구 성미산로 29길 12",
-    items: [{ name: "에티오피아 예가체프", weight: "200g", qty: 2, price: 15000 }],
-  },
-  {
-    id: "GC-2608-0391",
-    date: "8월 26일 16:40",
-    summary: "브라질 산토스 500g 외 1건",
-    amount: 41500,
-    status: "처리 대기",
-    email: "yunchan@naver.com",
-    address: "서울 마포구 성미산로 29길 12",
-    items: [
-      { name: "브라질 산토스", weight: "500g", qty: 1, price: 27000 },
-      { name: "과테말라 안티구아", weight: "200g", qty: 1, price: 14500 },
-    ],
-  },
-  {
-    id: "GC-2608-0327",
-    date: "8월 24일 11:05",
-    summary: "과테말라 안티구아 200g ×1",
-    amount: 17500,
-    status: "처리 완료",
-    email: "yunchan@naver.com",
-    address: "서울 마포구 성미산로 29길 12",
-    items: [{ name: "과테말라 안티구아", weight: "200g", qty: 1, price: 17500 }],
-  },
-  {
-    id: "GC-2608-0288",
-    date: "8월 21일 13:22",
-    summary: "콜롬비아 수프리모 500g ×1",
-    amount: 29000,
-    status: "처리 완료",
-    email: "yunchan@naver.com",
-    address: "서울 마포구 성미산로 29길 12",
-    items: [{ name: "콜롬비아 수프리모", weight: "500g", qty: 1, price: 29000 }],
-  },
-];
+function toOrderRecord(o: UserOrdersDto): OrderRecord {
+  const items: OrderItem[] = o.ordersDetails.map((d) => ({
+    detailId: d.id,
+    productId: d.productId,
+    qty: d.quantity,
+    price: d.quantity > 0 ? d.totalPrice / d.quantity : 0,
+  }));
+
+  const amount = o.ordersDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+
+  const summary =
+    items.length === 0
+      ? "주문 상품 없음"
+      : items.length === 1
+      ? `상품 #${items[0].productId} ×${items[0].qty}`
+      : `상품 #${items[0].productId} 외 ${items.length - 1}건`;
+
+  const allCompleted =
+    o.ordersDetails.length > 0 &&
+    o.ordersDetails.every((d) => d.status === "COMPLETED");
+
+  return {
+    id: String(o.id),
+    summary,
+    amount,
+    status: allCompleted ? "처리 완료" : "처리 대기",
+    items,
+  };
+}
 
 function OrdersContent() {
   const searchParams = useSearchParams();
-  const userEmail = searchParams.get("email") || "yunchan@naver.com";
+  const router = useRouter();
+  const userEmail = searchParams.get("email") || "user@domain.com";
+  const isAdmin = userEmail === ADMIN_EMAIL;
 
-  const [orders, setOrders] = useState<OrderRecord[]>(INITIAL_ORDERS);
-  const [selectedId, setSelectedId] = useState<string>("GC-2608-0391");
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [currentTab, setCurrentTab] = useState<string>("전체");
 
-  // Selected Order
-  const selectedOrder = orders.find((o) => o.id === selectedId) || orders[0];
-
-  // Edit draft states
-  const [editEmail, setEditEmail] = useState(selectedOrder?.email || userEmail);
-  const [editAddress, setEditAddress] = useState(selectedOrder?.address || "");
-  const [editItems, setEditItems] = useState<OrderItem[]>(selectedOrder?.items || []);
+  const [editItems, setEditItems] = useState<OrderItem[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  // Sync draft when selected order changes
+  useEffect(() => {
+    if (isAdmin) {
+      router.replace("/admin/orders");
+    }
+  }, [isAdmin, router]);
+
+  useEffect(() => {
+    if (isAdmin) return;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchMyOrders(userEmail);
+        const rows = data.map(toOrderRecord);
+        setOrders(rows);
+        if (rows.length > 0) {
+          setSelectedId(rows[0].id);
+          setEditItems(rows[0].items.map((it) => ({ ...it })));
+        }
+      } catch {
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [userEmail, isAdmin]);
+
+  const selectedOrder = orders.find((o) => o.id === selectedId);
+
   const handleSelectOrder = (order: OrderRecord) => {
     setSelectedId(order.id);
-    setEditEmail(order.email);
-    setEditAddress(order.address);
     setEditItems(order.items.map((it) => ({ ...it })));
   };
 
-  // Filter orders by tab
   const filteredOrders = orders.filter((o) => {
     if (currentTab === "전체") return true;
     return o.status === currentTab;
@@ -116,56 +117,26 @@ function OrdersContent() {
     "처리 완료": orders.filter((o) => o.status === "처리 완료").length,
   };
 
-  // Draft calculations
   const editSubtotal = editItems.reduce((acc, it) => acc + it.price * it.qty, 0);
-  const inOrderNames = new Set(editItems.map((it) => it.name));
 
-  // Save changes
   const handleSaveEdit = () => {
     if (editItems.length === 0) {
       alert("주문 상품은 최소 1개 이상이어야 합니다.");
       return;
     }
-
-    const summary =
-      editItems.length === 1
-        ? `${editItems[0].name} ${editItems[0].weight} ×${editItems[0].qty}`
-        : `${editItems[0].name} ${editItems[0].weight} 외 ${editItems.length - 1}건`;
-
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedId
-          ? {
-              ...o,
-              email: editEmail,
-              address: editAddress,
-              items: editItems,
-              amount: editSubtotal,
-              summary,
-            }
-          : o
-      )
-    );
-
-    alert("주문 수정이 저장되었습니다.");
+    alert("주문 수정 API가 아직 연결되지 않았습니다.");
   };
 
-  // Confirm delete
   const handleConfirmDelete = () => {
     if (!deleteTargetId) return;
-    setOrders((prev) => prev.filter((o) => o.id !== deleteTargetId));
     setDeleteModalOpen(false);
-    if (selectedId === deleteTargetId) {
-      const remaining = orders.filter((o) => o.id !== deleteTargetId);
-      if (remaining.length > 0) {
-        handleSelectOrder(remaining[0]);
-      }
-    }
+    alert("주문 삭제 API가 아직 연결되지 않았습니다.");
   };
+
+  if (isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-canvas p-0 sm:p-6 md:p-8 flex justify-center items-start">
-      {/* 1180px Main Container */}
       <div className="w-full max-w-[1180px] bg-page border border-line rounded-[12px] shadow-sm overflow-hidden flex flex-col">
         {/* Header */}
         <header className="flex items-center justify-between px-7 py-[18px] border-b border-line bg-white">
@@ -212,7 +183,11 @@ function OrdersContent() {
         <div className="flex flex-col lg:flex-row gap-[22px] p-[18px_28px_28px] items-start">
           {/* Left Column: Orders List */}
           <div className="flex-1 w-full flex flex-col gap-2.5">
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <div className="py-16 text-center text-muted bg-white border border-line rounded-[12px]">
+                불러오는 중...
+              </div>
+            ) : filteredOrders.length === 0 ? (
               <div className="py-16 text-center text-muted bg-white border border-line rounded-[12px]">
                 주문 내역이 없습니다.
               </div>
@@ -241,7 +216,7 @@ function OrdersContent() {
                     </div>
 
                     <div className="text-[12.5px] text-muted mt-1">
-                      {order.date} · {order.amount.toLocaleString("ko-KR")}원
+                      {order.amount.toLocaleString("ko-KR")}원
                     </div>
 
                     {isSelected && (
@@ -283,10 +258,6 @@ function OrdersContent() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-faint">주문일시</span>
-                  <span className="text-ink">{selectedOrder.date}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-faint">합계 금액</span>
                   <span className="font-bold text-ink">
                     {editSubtotal.toLocaleString("ko-KR")}원
@@ -296,35 +267,6 @@ function OrdersContent() {
 
               <div className="border-t border-line2 my-4" />
 
-              {/* Editable Fields */}
-              <div className="font-mono text-[11px] text-faint mb-2.5">
-                수정 가능한 항목
-              </div>
-              <div className="flex flex-col gap-2.5 mb-4">
-                <div>
-                  <div className="text-[12px] font-semibold text-muted mb-1">
-                    이메일
-                  </div>
-                  <input
-                    type="email"
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full h-9.5 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
-                  />
-                </div>
-                <div>
-                  <div className="text-[12px] font-semibold text-muted mb-1">
-                    주소
-                  </div>
-                  <input
-                    type="text"
-                    value={editAddress}
-                    onChange={(e) => setEditAddress(e.target.value)}
-                    className="w-full h-9.5 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
-                  />
-                </div>
-              </div>
-
               {/* Order Items List */}
               <div className="font-mono text-[11px] text-faint mb-2">
                 주문 상품
@@ -332,14 +274,11 @@ function OrdersContent() {
               <div className="flex flex-col gap-2">
                 {editItems.map((item, idx) => (
                   <div
-                    key={item.name}
+                    key={item.detailId}
                     className="flex items-center gap-2.5 p-2.5 border border-line2 rounded-[9px] bg-page"
                   >
                     <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
-                      {item.name}{" "}
-                      <span className="text-faint text-[11.5px]">
-                        {item.weight}
-                      </span>
+                      상품 #{item.productId}
                     </div>
 
                     <QtyStepper
@@ -377,51 +316,6 @@ function OrdersContent() {
                     </button>
                   </div>
                 ))}
-              </div>
-
-              {/* Add Catalog Items (2a) */}
-              <div className="font-mono text-[11px] text-faint mt-4 mb-2">
-                상품 추가
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {CATALOG.map((cat) => {
-                  const alreadyAdded = inOrderNames.has(cat.name);
-                  return (
-                    <div
-                      key={cat.name}
-                      className="flex items-center gap-2.5 p-2 px-3 border border-line2 rounded-[9px] bg-white"
-                    >
-                      <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
-                        {cat.name}{" "}
-                        <span className="text-faint text-[11.5px]">
-                          {cat.weight}
-                        </span>
-                      </div>
-                      <div className="text-[12.5px] text-muted">
-                        {cat.price.toLocaleString("ko-KR")}원
-                      </div>
-                      <button
-                        type="button"
-                        disabled={alreadyAdded}
-                        onClick={() => {
-                          if (!alreadyAdded) {
-                            setEditItems((prev) => [
-                              ...prev,
-                              { ...cat, qty: 1 },
-                            ]);
-                          }
-                        }}
-                        className={`text-[12px] font-semibold px-3 py-1 rounded-[7px] transition-colors ${
-                          alreadyAdded
-                            ? "bg-chipbg text-disabled cursor-not-allowed"
-                            : "border-[1.5px] border-ink text-ink hover:bg-hover cursor-pointer"
-                        }`}
-                      >
-                        {alreadyAdded ? "담김 ✓" : "+ 추가"}
-                      </button>
-                    </div>
-                  );
-                })}
               </div>
 
               {/* Buttons */}
