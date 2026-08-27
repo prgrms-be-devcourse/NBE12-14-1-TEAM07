@@ -49,6 +49,9 @@ export default function AdminOrdersPage() {
   const [dateOrder, setDateOrder] = useState<"desc" | "asc">("desc");
   const [activeSort, setActiveSort] = useState<"date" | "status">("date");
   const [statusOrder, setStatusOrder] = useState<"ready-first" | "completed-first">("ready-first");
+  const [processResult, setProcessResult] = useState<
+    { type: "success"; count: number } | { type: "error" } | null
+  >(null);
 
   useEffect(() => {
     const load = async () => {
@@ -99,11 +102,11 @@ export default function AdminOrdersPage() {
     }
     try {
       const count = await completeOrders(ADMIN_EMAIL, deliveryDate);
-      alert(`처리 가능한 ${count}건의 주문이 일괄 처리 완료되었습니다.`);
+      setProcessResult({ type: "success", count });
       const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
       setOrders(data.map(toAdminOrderRow));
     } catch {
-      alert("일괄 처리에 실패했습니다.");
+      setProcessResult({ type: "error" });
     }
   };
 
@@ -282,6 +285,51 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       </div>
+
+      {/* 일괄 처리 결과 모달 */}
+      {processResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-line rounded-[12px] p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-150">
+            {processResult.type === "success" ? (
+              <>
+                <div className="w-10 h-10 rounded-full bg-ok-bg text-ok-fg flex items-center justify-center font-bold text-lg mb-3">
+                  ✓
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  주문 처리가 완료되었습니다!
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  {deliveryDate} 배송 건 중 처리 가능했던{" "}
+                  <span className="font-semibold text-ink">{processResult.count}건</span>의
+                  주문이 일괄 처리되었습니다.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-full bg-warn-bg text-warn-fg flex items-center justify-center font-bold text-lg mb-3">
+                  !
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  일괄 처리에 실패했습니다
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  잠시 후 다시 시도해주세요.
+                </p>
+              </>
+            )}
+
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => setProcessResult(null)}
+                className="w-full h-10 bg-ink text-white rounded-lg text-[13px] font-semibold hover:bg-black transition-colors cursor-pointer"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
