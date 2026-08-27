@@ -3,31 +3,82 @@
 import { useState } from "react";
 import { CartItem } from "@/lib/types";
 import QtyStepper from "./QtyStepper";
+import { createOrder } from "@/lib/api";
 
 interface OrderFormProps {
   cart: CartItem[];
   onUpdateQty: (productId: number, newQty: number) => void;
   onRemoveItem: (productId: number) => void;
+  onClearCart?: () => void;
 }
 
 export default function OrderForm({
   cart,
   onUpdateQty,
   onRemoveItem,
+  onClearCart,
 }: OrderFormProps) {
-  const [email, setEmail] = useState("yunchan@naver.com");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [isOrdered, setIsOrdered] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 주문 완료 응답
+  const [orderId, setOrderId] = useState();
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (cart.length === 0) {
       alert("주문할 상품을 1개 이상 담아주세요.");
       return;
     }
-    setIsOrdered(true);
+
+    // 이메일 유효성 체크 (빈칸 및 이메일 형식)
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      alert("이메일 주소를 입력해주세요.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      alert("올바른 이메일 형식을 입력해주세요. (예: user@example.com)");
+      return;
+    }
+
+    // 주소 유효성 체크
+    const trimmedAddress = address.trim();
+    if (!trimmedAddress) {
+      alert("배송 받을 주소를 입력해주세요.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      // 2. API 호출
+      const response = await createOrder({
+        email: email.trim(),
+        ordersDetails: cart.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      });
+      console.log("주문 응답 데이터:", response);
+      setOrderId(response.data.id);
+      // 3. 백엔드에서 생성된 실제 주문번호 저장 & 폼/장바구니 비우기
+      setSubmittedEmail(email.trim());
+      setIsOrdered(true);
+      onClearCart?.();
+      setAddress("");
+    } catch (error) {
+      alert("주문 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -87,10 +138,11 @@ export default function OrderForm({
         <div>
           <div className="text-[12px] font-semibold text-muted mb-1">이메일</div>
           <input
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-10 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
+            placeholder="yunchan@naver.com"
+            className="w-full h-10 px-3 border border-field rounded-lg text-[13px] text-ink bg-white placeholder:text-faint focus:outline-none focus:border-ink transition-colors"
           />
         </div>
 
@@ -126,10 +178,10 @@ export default function OrderForm({
             <p className="text-[13px] text-muted mt-2 leading-relaxed">
               주문번호:{" "}
               <span className="font-mono font-semibold text-ink">
-                GC-2608-0391
+                {orderId}
               </span>
               <br />
-              등록하신 이메일(<span className="text-ink font-medium">{email}</span>)로 내 주문 내역을 조회할 수 있습니다.
+              등록하신 이메일(<span className="text-ink font-medium">{submittedEmail}</span>)로 내 주문 내역을 조회할 수 있습니다.
             </p>
 
             {/* 모달 내 배송 안내 박스 */}
