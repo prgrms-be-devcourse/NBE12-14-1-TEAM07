@@ -12,12 +12,14 @@ import { UserOrdersDto } from "@/lib/types";
 interface OrderItem {
   detailId: number;
   productId: number;
+  productName: string;
   qty: number;
   price: number;
 }
 
 interface OrderRecord {
   id: string;
+  date: string;
   summary: string;
   amount: number;
   status: "처리 대기" | "처리 완료";
@@ -30,6 +32,7 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
   const items: OrderItem[] = o.ordersDetails.map((d) => ({
     detailId: d.id,
     productId: d.productId,
+    productName: d.productName,
     qty: d.quantity,
     price: d.quantity > 0 ? d.totalPrice / d.quantity : 0,
   }));
@@ -40,8 +43,8 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
     items.length === 0
       ? "주문 상품 없음"
       : items.length === 1
-      ? `상품 #${items[0].productId} ×${items[0].qty}`
-      : `상품 #${items[0].productId} 외 ${items.length - 1}건`;
+        ? `${items[0].productName} ×${items[0].qty}`
+        : `${items[0].productName} 외 ${items.length - 1}건`;
 
   const allCompleted =
     o.ordersDetails.length > 0 &&
@@ -49,6 +52,7 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
 
   return {
     id: String(o.id),
+    date: o.modifyDate.replace("T", " ").slice(0, 16),
     summary,
     amount,
     status: allCompleted ? "처리 완료" : "처리 대기",
@@ -217,11 +221,10 @@ const handleSaveEdit = async () => {
                   key={tab}
                   type="button"
                   onClick={() => setCurrentTab(tab)}
-                  className={`text-[13px] font-semibold px-4 py-2 rounded-full transition-all cursor-pointer ${
-                    active
+                  className={`text-[13px] font-semibold px-4 py-2 rounded-full transition-all cursor-pointer ${active
                       ? "bg-ink text-white border border-ink"
                       : "bg-white text-muted border border-chip hover:bg-hover"
-                  }`}
+                    }`}
                 >
                   {tab} {tabCounts[tab]}
                 </button>
@@ -249,11 +252,10 @@ const handleSaveEdit = async () => {
                   <div
                     key={order.id}
                     onClick={() => handleSelectOrder(order)}
-                    className={`p-[14px_16px] rounded-[10px] cursor-pointer transition-all bg-white ${
-                      isSelected
+                    className={`p-[14px_16px] rounded-[10px] cursor-pointer transition-all bg-white ${isSelected
                         ? "border-[1.5px] border-ink shadow-[0_2px_8px_rgba(23,24,28,0.08)]"
                         : "border border-line hover:border-faint"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-[11.5px] text-faint">
@@ -309,6 +311,10 @@ const handleSaveEdit = async () => {
                   </span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-faint">최종 변경</span>
+                  <span className="text-ink">{selectedOrder.date}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-faint">합계 금액</span>
                   <span className="font-bold text-ink">
                     {editSubtotal.toLocaleString("ko-KR")}원
@@ -329,7 +335,7 @@ const handleSaveEdit = async () => {
                     className="flex items-center gap-2.5 p-2.5 border border-line2 rounded-[9px] bg-page"
                   >
                     <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
-                      상품 #{item.productId}
+                      {item.productName}
                     </div>
 
                     <QtyStepper
