@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
+import { fetchOrders } from "@/lib/api";
+import { OrdersDto } from "@/lib/types";
+
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
 
 interface AdminOrderRow {
   id: string;
@@ -10,85 +14,56 @@ interface AdminOrderRow {
   items: string;
   amount: string;
   time: string;
-  status: "처리 가능" | "처리 완료" | "처리 불가";
+  status: "처리 가능" | "처리 완료";
 }
 
-const INITIAL_ADMIN_ORDERS: AdminOrderRow[] = [
-  {
-    id: "GC-2608-0405",
-    email: "mina.park@naver.com",
-    items: "예가체프 200g ×1",
-    amount: "16,500원",
-    time: "07:58",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0412",
-    email: "yunchan@naver.com",
-    items: "예가체프 200g ×2",
-    amount: "30,000원",
-    time: "09:12",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0418",
-    email: "doyun.kim@naver.com",
-    items: "산토스 500g ×1",
-    amount: "27,000원",
-    time: "10:44",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0421",
-    email: "seoa.jung@naver.com",
-    items: "수프리모 200g ×1",
-    amount: "15,000원",
-    time: "11:30",
-    status: "처리 완료",
-  },
-  {
-    id: "GC-2608-0427",
-    email: "hana.lee@naver.com",
-    items: "안티구아 200g ×2",
-    amount: "32,000원",
-    time: "13:05",
-    status: "처리 가능",
-  },
-  {
-    id: "GC-2608-0433",
-    email: "jinwoo.seo@naver.com",
-    items: "예가체프 외 1건",
-    amount: "27,500원",
-    time: "13:58",
-    status: "처리 완료",
-  },
-  {
-    id: "GC-2608-0440",
-    email: "sumin.choi@naver.com",
-    items: "산토스 200g ×1",
-    amount: "14,000원",
-    time: "14:21",
-    status: "처리 불가",
-  },
-  {
-    id: "GC-2608-0446",
-    email: "gaeun.yoon@naver.com",
-    items: "수프리모 500g ×1",
-    amount: "29,000원",
-    time: "15:07",
-    status: "처리 불가",
-  },
-];
+function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
+  const activeDetails = o.ordersDetails.filter((d) => d.status !== "CANCELED");
+  const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+
+  return {
+    id: String(o.id),
+    email: o.email,
+    items: `상품 ${activeDetails.length}건`,
+    amount: `${total.toLocaleString("ko-KR")}원`,
+    time: o.createDate.split("T")[1].slice(0, 5),
+    status: o.orderStatus === "COMPLETED" ? "처리 완료" : "처리 가능",
+  };
+}
+
+function todayString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<AdminOrderRow[]>(INITIAL_ADMIN_ORDERS);
+  const [orders, setOrders] = useState<AdminOrderRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<string>("전체");
+  const [deliveryDate, setDeliveryDate] = useState<string>(todayString());
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
+        setOrders(data.map(toAdminOrderRow));
+      } catch {
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [deliveryDate]);
 
   // Filter calculations
   const totalCount = orders.length;
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
-  const blockedCount = orders.filter((r) => r.status === "처리 불가").length;
 
   const filteredOrders = orders.filter((r) => {
     if (filter === "전체") return true;
@@ -128,9 +103,16 @@ export default function AdminOrdersPage() {
         {/* Toolbar & Date */}
         <div className="p-[26px_28px_0]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-3.5">
-            <div className="flex items-center gap-2.5 h-[42px] px-4 bg-white border border-field rounded-[9px] text-[14px] font-semibold text-ink shadow-2xs">
-              2026-08-27 (목)
-              <span className="text-[10px] text-faint">▼</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[12.5px] font-semibold text-muted">
+                배송일
+              </span>
+              <input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                className="h-[42px] px-4 bg-white border border-field rounded-[9px] text-[14px] font-semibold text-ink shadow-2xs cursor-pointer focus:outline-none focus:border-ink transition-colors"
+              />
             </div>
             <div className="font-mono text-[11.5px] text-faint">
               처리 기준 · 당일 14:00
@@ -145,10 +127,10 @@ export default function AdminOrdersPage() {
             </button>
           </div>
 
-          {/* 4 Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4.5">
+          {/* 3 Stat Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4.5">
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
-              <div className="text-[12px] text-faint font-medium">오늘 주문</div>
+              <div className="text-[12px] text-faint font-medium">배송 건수</div>
               <div className="text-[23px] font-extrabold tracking-[-0.01em] text-ink mt-1">
                 {totalCount}건
               </div>
@@ -165,12 +147,6 @@ export default function AdminOrdersPage() {
                 {readyCount}건
               </div>
             </div>
-            <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
-              <div className="text-[12px] text-faint font-medium">아직 처리 불가</div>
-              <div className="text-[23px] font-extrabold tracking-[-0.01em] text-warn-fg mt-1">
-                {blockedCount}건
-              </div>
-            </div>
           </div>
 
           {/* Filter Chips */}
@@ -179,7 +155,6 @@ export default function AdminOrdersPage() {
               { label: "전체", count: totalCount },
               { label: "처리 완료", count: completedCount },
               { label: "처리 가능", count: readyCount },
-              { label: "처리 불가", count: blockedCount },
             ].map(({ label, count }) => {
               const active = filter === label;
               return (
@@ -187,11 +162,10 @@ export default function AdminOrdersPage() {
                   key={label}
                   type="button"
                   onClick={() => setFilter(label)}
-                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                    active
+                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${active
                       ? "bg-ink text-white border border-ink"
                       : "bg-white text-muted border border-chip hover:bg-hover"
-                  }`}
+                    }`}
                 >
                   {label} {count}
                 </button>
@@ -215,7 +189,11 @@ export default function AdminOrdersPage() {
 
           {/* Table Rows */}
           <div className="divide-y divide-line3">
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <div className="py-12 text-center text-muted text-[13px]">
+                불러오는 중...
+              </div>
+            ) : filteredOrders.length === 0 ? (
               <div className="py-12 text-center text-muted text-[13px]">
                 해당 조건의 주문이 없습니다.
               </div>
@@ -263,24 +241,15 @@ export default function AdminOrdersPage() {
                       >
                         처리
                       </button>
-                    ) : row.status === "처리 완료" ? (
+                    ) : (
                       <div className="text-[12.5px] text-disabled text-center">
                         완료됨
-                      </div>
-                    ) : (
-                      <div className="w-full py-1 bg-chipbg text-disabled rounded-lg text-[12px] font-semibold text-center select-none">
-                        익일 처리
                       </div>
                     )}
                   </div>
                 </div>
               ))
             )}
-          </div>
-
-          {/* Footer Notice */}
-          <div className="p-[12px_18px] text-[12px] text-faint bg-white border-t border-line3">
-            14:00 이후 접수된 주문은 다음 영업일 오전에 처리할 수 있어요.
           </div>
         </div>
       </div>

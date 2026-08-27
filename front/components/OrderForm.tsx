@@ -15,7 +15,7 @@ export default function OrderForm({
   onUpdateQty,
   onRemoveItem,
 }: OrderFormProps) {
-  const [email, setEmail] = useState("yunchan@naver.com");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [isOrdered, setIsOrdered] = useState(false);
 
