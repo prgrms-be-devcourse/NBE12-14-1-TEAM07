@@ -1,8 +1,6 @@
 package com.back.nbe12141team07.domain.orders.controller;
 
-import com.back.nbe12141team07.domain.orders.dto.OrdersDetailDto;
-import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
-import com.back.nbe12141team07.domain.orders.dto.OrdersDto;
+import com.back.nbe12141team07.domain.orders.dto.*;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 import com.back.nbe12141team07.domain.orders.service.OrdersService;
@@ -73,14 +71,16 @@ public class OrdersController {
     // /{email}로 받았다가 단건 조회랑 Spring의 경로 충돌 문제로 /me로 변환 후
     // email을 RequestParam 조건으로 변경 (URL 방식 -> 쿼리 스트링 방식)
     @GetMapping("/me")
-    public RsData<List<OrdersDto>> getUserOrderList(
+    public RsData<List<UserOrdersDto>> getUserOrderList(
             @RequestParam String email
     ) {
         List<Orders> orders = ordersService.getUserOrders(email);
         return new RsData<> (
                 "200-1",
                 "사용자 권한으로 주문이 다건 조회되었습니다",
-                orders.stream().map(OrdersDto::new).toList() // List<Orders> -> List<OrdersDto>로 변환
+                orders.stream()
+                        .map(UserOrdersDto::new)
+                        .toList() // List<Orders> -> List<OrdersDto>로 변환
         );
     }
 
@@ -111,22 +111,21 @@ public class OrdersController {
         );
     }
 
-    record OrderModifyReqBody(
-            int quantity
-    ) {
-    }
-    @PatchMapping("/{orderId}/details/{detailId}")
-    public RsData<OrdersDetailDto> modifyOrder(
+    @PatchMapping("/{orderId}")
+    public RsData<List<OrdersDetailDto>> modifyOrder(
             @PathVariable int orderId,
-            @PathVariable int detailId,
-            @RequestBody OrderModifyReqBody orderModifyBody
-    ) {
-        OrdersDetail orderDetail = ordersService.modifyOrders(orderId, detailId, orderModifyBody.quantity());
+            @RequestBody OrderModifyRequest modifyReqBody
+            ) {
+        List<OrdersDetail> orderDetail = ordersService.modifyOrders(orderId, modifyReqBody);
 
-        return new RsData<OrdersDetailDto>(
+        List<OrdersDetailDto> ordersDetailDtoList = orderDetail.stream()
+                .map(d -> new OrdersDetailDto(d))
+                .toList();
+
+        return new RsData<>(
                 "200-1",
                 "주문이 수정되었습니다",
-                new OrdersDetailDto(orderDetail)
+                ordersDetailDtoList
         );
     }
 

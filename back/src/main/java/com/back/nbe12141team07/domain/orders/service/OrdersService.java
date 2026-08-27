@@ -1,17 +1,22 @@
 package com.back.nbe12141team07.domain.orders.service;
 
 import com.back.nbe12141team07.domain.orders.controller.OrdersController;
+import com.back.nbe12141team07.domain.orders.dto.OrderDetailModifyRequest;
+import com.back.nbe12141team07.domain.orders.dto.OrderModifyRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
 import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
 import com.back.nbe12141team07.domain.product.entity.Product;
+import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
+import com.back.nbe12141team07.global.exception.InvalidOrdersQuantityException;
 import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
 import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
+import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +37,7 @@ public class OrdersService {
     private static final LocalTime CUTOFF = LocalTime.of(14, 0);
 
     private static final int CUTOFF_HOUR = 14; // 14시 기준점
+    private final ProductRepository productRepository;
 
     public LocalDate resolveDeliveryDate(LocalDateTime base) {
         LocalDate date = base.toLocalDate();
@@ -56,19 +62,26 @@ public class OrdersService {
                 startOf(deliveryDate), endOf(deliveryDate));
     }
 
-    @org.springframework.transaction.annotation.Transactional
-    public OrdersDetail modifyOrders(int id, int orderDetailId, int quantity) {
-        Orders order = ordersRepository.findById(id).get();
+    @Transactional
+    public List<OrdersDetail> modifyOrders(int orderId, OrderModifyRequest reqbody) {
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
-        OrdersDetail detail = order.getOrdersDetails()
-                .stream()
-                .filter(d -> d.getId() == orderDetailId)
-                .findFirst()
-                .orElseThrow();
+        for(OrderDetailModifyRequest request : reqbody.details()) {
+            OrdersDetail detail = order.getOrdersDetails()
+                    .stream()
+                    .filter(d -> d.getId() == request.detailId())
+                    .findFirst()
+                    .orElseThrow(() -> new OrdersDetailNotFoundException(orderId, request.detailId()));
 
-        detail.updateOrderQuantity(quantity);
+            Product product = productRepository.findById(request.productId())
+                    .orElseThrow(() -> new ProductNotFoundException(request.productId()));
 
-        return detail;
+            detail.updateOrder(product, request.quantity());
+        }
+
+        return order.getOrdersDetails();
+
     }
 
     public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
@@ -119,7 +132,7 @@ public class OrdersService {
                 .findFirst()
                 .orElseThrow(() -> new OrdersDetailNotFoundException(orderId, detailId));
 
-        order.removeOrderDetail(detail);
+        detail.cancel();
     }
 
     public Orders findById(int id) {
@@ -147,4 +160,5 @@ public class OrdersService {
 
         return orders.size();
     }
+
 }

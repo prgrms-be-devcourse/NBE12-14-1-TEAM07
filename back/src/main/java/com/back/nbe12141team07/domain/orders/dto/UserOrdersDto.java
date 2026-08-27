@@ -1,25 +1,22 @@
 package com.back.nbe12141team07.domain.orders.dto;
 
+import com.back.nbe12141team07.domain.orders.entity.OrderDetailStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
-public record OrdersDto(
+public record UserOrdersDto(
         int id,
-        LocalDateTime createDate,
-        LocalDateTime modifyDate,
-        String email,
         List<OrdersDetailDto> ordersDetails
 ) {
-    public OrdersDto(Orders orders) {
+    public UserOrdersDto(Orders orders) {
         this(
                 orders.getId(),
-                orders.getCreateDate(),
-                orders.getModifyDate(),
-                orders.getUsers().getEmail(),
-                // OrdersDetails를 Stream을 사용하여 List로 반환
                 orders.getOrdersDetails()
                         .stream()
+                        .filter(detail ->
+                                detail.getStatus() != OrderDetailStatus.CANCELED
+                        )
                         .map(OrdersDetailDto::new)
                         .toList()
         );
