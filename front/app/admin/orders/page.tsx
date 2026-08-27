@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
-import { fetchOrders } from "@/lib/api";
+import { fetchOrders, completeOrders } from "@/lib/api";
 import { OrdersDto } from "@/lib/types";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
@@ -70,18 +70,20 @@ export default function AdminOrdersPage() {
     return r.status === filter;
   });
 
-  // Batch process all ready orders
-  const handleBatchProcess = () => {
+  // Batch process all ready orders for the selected delivery date
+  const handleBatchProcess = async () => {
     if (readyCount === 0) {
       alert("현재 처리 가능한 주문이 없습니다.");
       return;
     }
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.status === "처리 가능" ? { ...r, status: "처리 완료" } : r
-      )
-    );
-    alert(`처리 가능한 ${readyCount}건의 주문이 일괄 처리 완료되었습니다.`);
+    try {
+      const count = await completeOrders(ADMIN_EMAIL, deliveryDate);
+      alert(`처리 가능한 ${count}건의 주문이 일괄 처리 완료되었습니다.`);
+      const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
+      setOrders(data.map(toAdminOrderRow));
+    } catch {
+      alert("일괄 처리에 실패했습니다.");
+    }
   };
 
   // Single process
