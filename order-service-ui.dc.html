@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+<style>
+body{margin:0;background:#eceef1;font-family:'Pretendard',sans-serif;color:#17181c;-webkit-font-smoothing:antialiased}
+a{color:#17181c}a:hover{color:#000}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#17181c;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 'Pretendard',sans-serif;color:#17181c}
+.dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#17181c;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11.5px/1.3 'Pretendard',sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:24px 0 0;font:12px/1.5 'Pretendard',sans-serif;color:rgba(0,0,0,.5)}
+</style>
+</helmet>
+<div style="padding:36px 44px 8px">
+<div style="font-weight:800;letter-spacing:-0.02em;font-size:25px">Grids &amp; Circles — 주문 서비스 UI 목업</div>
+<div style="margin-top:10px;font-size:12.5px;line-height:1.8;color:rgba(0,0,0,.55);max-width:780px">가정: 원두 온라인 주문 · 회원가입 없이 이메일이 식별자 · 당일 14:00 이전 주문은 당일 발송(이후는 익일 처리) · 데스크톱 웹 1180px. 스펙의 3개 페이지는 <a href="#1a">1a</a> <a href="#1b">1b</a> <a href="#1c">1c</a>, 추가 요청분은 <a href="#2a">2a</a>(주문 수정 시 상품 추가) · <a href="#2b">2b</a>(관리자 상품 등록/수정/삭제). Next.js + Tailwind 구현 가이드는 핸드오프 문서(다운로드) 참고.</div>
+</div>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">주문 수정 — 상품 추가 · 관리자 — 상품 등록/수정/삭제</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a" data-screen-label="주문 수정 - 상품 추가">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>주문 수정 패널 — 수량 변경 · 항목 삭제 · 새 상품 추가 (전부 클릭 가능)</div>
+<div class="dv-card" style="width:440px;background:#fff">
+<div style="padding:20px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;letter-spacing:-0.01em;font-size:16px">주문 상세 · 수정</span><span style="font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:oklch(0.95 0.02 250);color:oklch(0.45 0.1 250)">처리 대기</span></div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#878c96">주문번호</span><span style="font-family:ui-monospace,Menlo,monospace">GC-2608-0391</span></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#878c96">주문일시</span><span>2026-08-26 16:40</span></div>
+</div>
+<div style="border-top:1px solid #edeff3;margin:16px 0 12px"></div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96;margin-bottom:8px">주문 상품</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ editItems }}" as="e" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #edeff3;border-radius:9px;background:#f7f8fa">
+<div style="flex:1;min-width:0;font-size:13px;font-weight:500">{{ e.name }} <span style="color:#878c96;font-size:11.5px">{{ e.weight }}</span></div>
+<div style="display:flex;align-items:center;border:1px solid #d9dce2;border-radius:7px;overflow:hidden;background:#fff">
+<div onClick="{{ e.onDec }}" style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">−</div>
+<div style="width:26px;text-align:center;font-size:13px;font-weight:600">{{ e.qty }}</div>
+<div onClick="{{ e.onInc }}" style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">+</div>
+</div>
+<div style="width:64px;text-align:right;font-size:13px;font-weight:600">{{ e.lineLabel }}</div>
+<div onClick="{{ e.onRemove }}" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#a7acb6;font-size:14px;cursor:pointer" style-hover="background:oklch(0.97 0.02 25);color:oklch(0.5 0.12 25)">×</div>
+</div>
+</sc-for>
+</div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96;margin:16px 0 8px">상품 추가</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{ addCatalog }}" as="a" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #edeff3;border-radius:9px">
+<div style="flex:1;min-width:0;font-size:13px;font-weight:500">{{ a.name }} <span style="color:#878c96;font-size:11.5px">{{ a.weight }}</span></div>
+<div style="font-size:12.5px;color:#666b75">{{ a.priceLabel }}</div>
+<div onClick="{{ a.onAdd }}" style="{{ a.btnStyle }}">{{ a.btnLabel }}</div>
+</div>
+</sc-for>
+</div>
+<div style="border-top:1px solid #edeff3;margin:16px 0 12px"></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#666b75;margin-bottom:6px"><span>상품 합계</span><span>{{ editSub }}</span></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#666b75"><span>배송비</span><span>3,000원</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px"><span style="font-size:13px;font-weight:600">총 결제 금액</span><span style="font-size:18px;font-weight:800;letter-spacing:-0.01em">{{ editTotal }}</span></div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<div style="flex:1;height:42px;display:flex;align-items:center;justify-content:center;background:#17181c;color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#000">수정 저장</div>
+<div style="width:90px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #d9dce2;color:#666b75;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">취소</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b" data-screen-label="관리자 상품 관리">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>관리자 — 상품 관리: 등록 · 수정(행의 '수정' 클릭) · 삭제 확인</div>
+<div class="dv-card" style="width:1180px;background:#f7f8fa">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid #e3e5ea;background:#fff">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="display:inline-flex;align-items:center"><span style="width:13px;height:13px;border:2.5px solid #17181c"></span><span style="width:13px;height:13px;border:2.5px solid #17181c;border-radius:999px;margin-left:-5px;background:#fff"></span></span>
+<span style="font-weight:800;letter-spacing:-0.02em;font-size:19px">Grids &amp; Circles</span>
+<span style="font-size:11px;font-weight:700;letter-spacing:.08em;background:#17181c;color:#fff;padding:4px 9px;border-radius:5px">관리자</span>
+</div>
+<div style="font-size:12.5px;color:#666b75">admin@gridscircles.kr</div>
+</div>
+<div style="display:flex;gap:6px;padding:12px 28px 0;background:#fff;border-bottom:1px solid #e3e5ea">
+<div style="font-size:13.5px;font-weight:600;color:#878c96;padding:10px 14px;cursor:pointer" style-hover="color:#17181c">주문 관리</div>
+<div style="font-size:13.5px;font-weight:700;color:#17181c;padding:10px 14px;border-bottom:2.5px solid #17181c">상품 관리</div>
+</div>
+<div style="padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between">
+<div><span style="font-weight:800;letter-spacing:-0.02em;font-size:22px">상품 관리</span><span style="margin-left:10px;font-size:13px;color:#878c96">전체 5개</span></div>
+<div onClick="{{ onNewProduct }}" style="height:42px;display:flex;align-items:center;padding:0 18px;background:#17181c;color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#000">+ 새 상품 등록</div>
+</div>
+<div style="display:flex;gap:22px;padding:18px 28px 28px;align-items:flex-start">
+<div style="flex:1;background:#fff;border:1px solid #e3e5ea;border-radius:12px;overflow:hidden">
+<div style="display:grid;grid-template-columns:52px 1.1fr 1.5fr 90px 76px 128px;gap:12px;align-items:center;padding:11px 18px;background:#f7f8fa;border-bottom:1px solid #edeff3;font-size:11.5px;font-weight:600;color:#878c96">
+<span>사진</span><span>상품명</span><span>테이스팅 노트</span><span>가격</span><span>상태</span><span></span>
+</div>
+<sc-for list="{{ prodRows }}" as="r" hint-placeholder-count="5">
+<div style="{{ r.rowStyle }}">
+<div style="width:36px;height:36px;border-radius:8px;background:repeating-linear-gradient(45deg,#e9ebef 0 6px,#f4f5f7 6px 12px)"></div>
+<span style="font-size:13.5px;font-weight:600">{{ r.name }}</span>
+<span style="font-size:12.5px;color:#666b75">{{ r.note }}</span>
+<span style="font-size:13px;font-weight:600">{{ r.priceLabel }}</span>
+<span><span style="{{ r.statusStyle }}">{{ r.status }}</span></span>
+<div style="display:flex;gap:6px;justify-content:flex-end">
+<div onClick="{{ r.onEdit }}" style="{{ r.editStyle }}" style-hover="background:#f1f2f5">수정</div>
+<div style="{{ r.delStyle }}" style-hover="background:oklch(0.97 0.02 25)">삭제</div>
+</div>
+</div>
+</sc-for>
+<div style="padding:12px 18px;font-size:12px;color:#878c96">상품을 삭제해도 이미 등록된 주문 내역에는 영향이 없어요.</div>
+</div>
+<div style="width:360px;flex:none;display:flex;flex-direction:column;gap:18px">
+<div style="background:#fff;border:1px solid #e3e5ea;border-radius:12px;padding:20px">
+<div style="font-weight:700;letter-spacing:-0.01em;font-size:16px">{{ formTitle }}</div>
+<div style="margin-top:5px;font-size:12.5px;color:#878c96">{{ formSub }}</div>
+<div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">상품명</div><input defaultValue="콜롬비아 수프리모" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">테이스팅 노트</div><input defaultValue="카라멜 · 오렌지 · 균형 잡힌 바디" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div style="display:flex;gap:8px">
+<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">가격 (200g 기준)</div><input defaultValue="12,000" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div style="width:110px;flex:none"><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">판매 상태</div>
+<div style="display:flex;height:38px;border:1px solid #d9dce2;border-radius:8px;overflow:hidden">
+<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:#17181c;color:#fff">판매중</div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#878c96;cursor:pointer" style-hover="background:#f1f2f5">숨김</div>
+</div>
+</div>
+</div>
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">판매 용량</div>
+<div style="display:flex;gap:6px">
+<div style="font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;background:#17181c;color:#fff">200g</div>
+<div style="font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid #dfe2e8;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">500g</div>
+<div style="font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid #dfe2e8;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">1kg</div>
+</div>
+</div>
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">상품 사진</div>
+<div style="height:84px;border:1.5px dashed #d9dce2;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#878c96;cursor:pointer" style-hover="background:#f7f8fa">이미지를 끌어다 놓거나 클릭해서 업로드</div>
+</div>
+</div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<div style="flex:1;height:42px;display:flex;align-items:center;justify-content:center;background:#17181c;color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#000">{{ formCta }}</div>
+<div style="width:90px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #d9dce2;color:#666b75;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">취소</div>
+</div>
+</div>
+<div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96;margin-bottom:8px">'삭제' 클릭 시 — 확인 다이얼로그</div>
+<div style="background:#fff;border:1px solid #e3e5ea;border-radius:12px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.12)">
+<div style="font-size:15px;font-weight:700">상품을 삭제할까요?</div>
+<div style="font-size:12.5px;color:#666b75;margin-top:6px;line-height:1.6">디카페인 콜롬비아 · 이미 등록된 주문에는 영향이 없어요.</div>
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+<div style="height:38px;display:flex;align-items:center;padding:0 16px;border:1px solid #d9dce2;color:#666b75;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">취소</div>
+<div style="height:38px;display:flex;align-items:center;padding:0 16px;background:oklch(0.5 0.12 25);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:oklch(0.44 0.12 25)">삭제하기</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">다음으로: "<a class="dv-oid" href="#2b">2b</a> 상품 등록을 모달로" · "<a class="dv-oid" href="#2a">2a</a>를 <a class="dv-oid" href="#1b">1b</a> 패널에 반영" · "빈 상태/에러 상태 추가"</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">메인 · 사용자 · 관리자 3개 화면 (모던 테크 · 다크 액센트)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a" data-screen-label="메인 페이지">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>메인 페이지 — 상품 조회 · 주문 등록 · 이메일로 내 정보</div>
+<div class="dv-card" style="width:1180px;background:#f7f8fa">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid #e3e5ea;background:#fff">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="display:inline-flex;align-items:center"><span style="width:13px;height:13px;border:2.5px solid #17181c"></span><span style="width:13px;height:13px;border:2.5px solid #17181c;border-radius:999px;margin-left:-5px;background:#fff"></span></span>
+<span style="font-weight:800;letter-spacing:-0.02em;font-size:19px">Grids &amp; Circles</span>
+<span style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;color:#878c96">COFFEE ROASTERS</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px">
+<input placeholder="이메일 주소" style="width:230px;height:40px;padding:0 14px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;background:#f7f8fa;color:#17181c" />
+<div style="height:40px;display:flex;align-items:center;padding:0 18px;border:1.5px solid #17181c;color:#17181c;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">내 정보</div>
+</div>
+</div>
+<div style="padding:30px 28px 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px">
+<div>
+<div style="font-weight:800;letter-spacing:-0.02em;font-size:29px;line-height:1.35">오늘 볶은 원두를,<br />내일 아침 문 앞에.</div>
+<div style="margin-top:10px;font-size:13.5px;color:#666b75">소량 로스팅한 싱글 오리진 원두를 주문 다음 날 받아보세요.</div>
+</div>
+<div style="display:flex;align-items:center;gap:8px;background:#17181c;color:#f4f5f7;font-size:12.5px;font-weight:600;padding:10px 16px;border-radius:999px"><span style="width:7px;height:7px;border-radius:999px;background:oklch(0.75 0.13 155)"></span>오후 2시 이전 주문은 당일 발송</div>
+</div>
+<div style="display:flex;gap:22px;padding:0 28px 28px;align-items:flex-start">
+<div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+<sc-for list="{{ products }}" as="p" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #e3e5ea;border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:126px;background:repeating-linear-gradient(45deg,#e9ebef 0 10px,#f4f5f7 10px 20px);display:flex;align-items:center;justify-content:center"><span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96">원두 제품 사진</span></div>
+<div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:5px">
+<div style="font-size:15px;font-weight:600">{{ p.name }}</div>
+<div style="font-size:12.5px;color:#666b75;line-height:1.5">{{ p.note }}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
+<div style="font-size:15px;font-weight:700">{{ p.price }}</div>
+<div style="font-size:13px;font-weight:600;color:#fff;background:#17181c;padding:9px 18px;border-radius:8px;cursor:pointer" style-hover="background:#000">담기</div>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="width:330px;flex:none;background:#fff;border:1px solid #e3e5ea;border-radius:12px;padding:20px">
+<div style="font-weight:700;letter-spacing:-0.01em;font-size:16px">주문서</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ cart }}" as="c" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:10px">
+<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:500">{{ c.name }}</div><div style="font-size:11.5px;color:#878c96">{{ c.weight }}</div></div>
+<div style="display:flex;align-items:center;border:1px solid #d9dce2;border-radius:7px;overflow:hidden">
+<div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">−</div>
+<div style="width:26px;text-align:center;font-size:13px;font-weight:600">{{ c.qty }}</div>
+<div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">+</div>
+</div>
+<div style="width:62px;text-align:right;font-size:13.5px;font-weight:600">{{ c.price }}</div>
+</div>
+</sc-for>
+</div>
+<div style="border-top:1px solid #edeff3;margin:16px 0 12px"></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#666b75;margin-bottom:6px"><span>상품 합계</span><span>38,000원</span></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px;color:#666b75"><span>배송비</span><span>3,000원</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px"><span style="font-size:13px;font-weight:600">총 결제 금액</span><span style="font-size:18px;font-weight:800;letter-spacing:-0.01em">41,000원</span></div>
+<div style="border-top:1px solid #edeff3;margin:16px 0"></div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">이메일</div><input defaultValue="yunchan@naver.com" style="width:100%;box-sizing:border-box;height:40px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">주소</div><input placeholder="배송 받을 주소" style="width:100%;box-sizing:border-box;height:40px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">우편번호</div><input placeholder="00000" style="width:120px;box-sizing:border-box;height:40px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+</div>
+<div style="margin-top:16px;height:46px;display:flex;align-items:center;justify-content:center;background:#17181c;color:#fff;font-size:14.5px;font-weight:600;border-radius:9px;cursor:pointer" style-hover="background:#000">주문 등록하기</div>
+<div style="margin-top:10px;font-size:11.5px;color:#878c96;text-align:center;line-height:1.5">오후 2시 이후 주문은 다음 날 발송돼요.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b" data-screen-label="사용자 페이지">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>사용자 페이지 — 내 주문 다건 조회 · 수정 · 삭제 (탭 클릭 가능)</div>
+<div class="dv-card" style="width:1180px;background:#f7f8fa">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid #e3e5ea;background:#fff">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="display:inline-flex;align-items:center"><span style="width:13px;height:13px;border:2.5px solid #17181c"></span><span style="width:13px;height:13px;border:2.5px solid #17181c;border-radius:999px;margin-left:-5px;background:#fff"></span></span>
+<span style="font-weight:800;letter-spacing:-0.02em;font-size:19px">Grids &amp; Circles</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#666b75"><span style="width:26px;height:26px;border-radius:999px;background:#17181c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">유</span>yunchan@naver.com</div>
+</div>
+<div style="padding:28px 28px 10px">
+<div style="font-weight:800;letter-spacing:-0.02em;font-size:22px">주문 내역</div>
+<div style="margin-top:6px;font-size:13px;color:#666b75">이메일로 조회한 내 주문이에요. 주문을 클릭하면 수정하거나 삭제할 수 있어요.</div>
+<div style="display:flex;gap:8px;margin-top:18px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+<div style="{{ t.style }}" onClick="{{ t.onClick }}">{{ t.label }}</div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;gap:22px;padding:18px 28px 28px;align-items:flex-start">
+<div style="flex:1;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ userOrders }}" as="o" hint-placeholder-count="4">
+<div style="{{ o.cardStyle }}" onClick="{{ o.onSelect }}">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#878c96">{{ o.id }}</span><span style="{{ o.pillStyle }}">{{ o.status }}</span></div>
+<div style="font-size:14.5px;font-weight:600;margin-top:8px">{{ o.summary }}</div>
+<div style="font-size:12.5px;color:#666b75;margin-top:4px">{{ o.date }} · {{ o.amount }}</div>
+<sc-if value="{{ o.selected }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;gap:8px;margin-top:14px">
+<div style="flex:1;height:36px;display:flex;align-items:center;justify-content:center;border:1.5px solid #17181c;color:#17181c;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">수정</div>
+<div style="flex:1;height:36px;display:flex;align-items:center;justify-content:center;border:1.5px solid oklch(0.55 0.12 25);color:oklch(0.5 0.12 25);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:oklch(0.97 0.02 25)">삭제</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="width:400px;flex:none">
+<div style="background:#fff;border:1px solid #e3e5ea;border-radius:12px;padding:20px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;letter-spacing:-0.01em;font-size:16px">주문 상세 · 수정</span><span style="font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;background:oklch(0.95 0.02 250);color:oklch(0.45 0.1 250)">처리 대기</span></div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
+<div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#878c96">주문번호</span><span style="font-family:ui-monospace,Menlo,monospace">GC-2608-0391</span></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#878c96">주문일시</span><span>2026-08-26 16:40</span></div>
+<div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#878c96">합계 (배송비 포함)</span><span style="font-weight:700">41,500원</span></div>
+</div>
+<div style="border-top:1px solid #edeff3;margin:16px 0 14px"></div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96;margin-bottom:10px">수정 가능한 항목</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">이메일</div><input defaultValue="yunchan@naver.com" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div style="display:flex;gap:8px">
+<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">주소</div><input defaultValue="서울 마포구 성미산로 29길 12" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+<div style="width:96px;flex:none"><div style="font-size:12px;font-weight:600;color:#666b75;margin-bottom:5px">우편번호</div><input defaultValue="03969" style="width:100%;box-sizing:border-box;height:38px;padding:0 12px;border:1px solid #d9dce2;border-radius:8px;font-size:13px;font-family:inherit;color:#17181c" /></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #edeff3;border-radius:9px;background:#f7f8fa">
+<div style="flex:1;font-size:13px;font-weight:500">브라질 산토스 <span style="color:#878c96;font-size:11.5px">500g</span></div>
+<div style="display:flex;align-items:center;border:1px solid #d9dce2;border-radius:7px;overflow:hidden;background:#fff"><div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">−</div><div style="width:26px;text-align:center;font-size:13px;font-weight:600">1</div><div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">+</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #edeff3;border-radius:9px;background:#f7f8fa">
+<div style="flex:1;font-size:13px;font-weight:500">과테말라 안티구아 <span style="color:#878c96;font-size:11.5px">200g</span></div>
+<div style="display:flex;align-items:center;border:1px solid #d9dce2;border-radius:7px;overflow:hidden;background:#fff"><div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">−</div><div style="width:26px;text-align:center;font-size:13px;font-weight:600">1</div><div style="width:26px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666b75;cursor:pointer" style-hover="background:#f1f2f5">+</div></div>
+</div>
+</div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<div style="flex:1;height:42px;display:flex;align-items:center;justify-content:center;background:#17181c;color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#000">수정 저장</div>
+<div style="width:90px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #d9dce2;color:#666b75;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">취소</div>
+</div>
+</div>
+<sc-if value="{{ showModal }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:18px">
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#878c96;margin-bottom:8px">'삭제' 클릭 시 — 확인 다이얼로그</div>
+<div style="background:#fff;border:1px solid #e3e5ea;border-radius:12px;padding:20px;box-shadow:0 10px 28px rgba(0,0,0,.12)">
+<div style="font-size:15px;font-weight:700">주문을 삭제할까요?</div>
+<div style="font-size:12.5px;color:#666b75;margin-top:6px;line-height:1.6">GC-2608-0391 · 삭제한 주문은 되돌릴 수 없어요.</div>
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+<div style="height:38px;display:flex;align-items:center;padding:0 16px;border:1px solid #d9dce2;color:#666b75;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">취소</div>
+<div style="height:38px;display:flex;align-items:center;padding:0 16px;background:oklch(0.5 0.12 25);color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:oklch(0.44 0.12 25)">삭제하기</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c" data-screen-label="관리자 페이지">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>관리자 페이지 — 날짜 기준 전체 주문 조회 · 주문 처리 (필터 클릭 가능)</div>
+<div class="dv-card" style="width:1180px;background:#f7f8fa">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid #e3e5ea;background:#fff">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="display:inline-flex;align-items:center"><span style="width:13px;height:13px;border:2.5px solid #17181c"></span><span style="width:13px;height:13px;border:2.5px solid #17181c;border-radius:999px;margin-left:-5px;background:#fff"></span></span>
+<span style="font-weight:800;letter-spacing:-0.02em;font-size:19px">Grids &amp; Circles</span>
+<span style="font-size:11px;font-weight:700;letter-spacing:.08em;background:#17181c;color:#fff;padding:4px 9px;border-radius:5px">관리자</span>
+</div>
+<div style="font-size:12.5px;color:#666b75">admin@gridscircles.kr</div>
+</div>
+<div style="padding:26px 28px 0">
+<div style="display:flex;align-items:center;gap:14px">
+<div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 16px;background:#fff;border:1px solid #d9dce2;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#f1f2f5">2026-08-27 (목)<span style="font-size:10px;color:#878c96">▼</span></div>
+<div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#878c96">처리 기준 · 당일 14:00</div>
+<div style="flex:1"></div>
+<div style="height:42px;display:flex;align-items:center;padding:0 18px;background:#17181c;color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer" style-hover="background:#000">선택 4건 일괄 처리</div>
+</div>
+<div style="display:flex;gap:12px;margin-top:18px">
+<div style="flex:1;background:#fff;border:1px solid #e3e5ea;border-radius:11px;padding:14px 16px"><div style="font-size:12px;color:#878c96">오늘 주문</div><div style="font-size:23px;font-weight:800;letter-spacing:-0.01em;margin-top:4px">8건</div></div>
+<div style="flex:1;background:#fff;border:1px solid #e3e5ea;border-radius:11px;padding:14px 16px"><div style="font-size:12px;color:#878c96">처리 완료</div><div style="font-size:23px;font-weight:800;letter-spacing:-0.01em;margin-top:4px;color:oklch(0.45 0.1 150)">2건</div></div>
+<div style="flex:1;background:#fff;border:1px solid #e3e5ea;border-radius:11px;padding:14px 16px"><div style="font-size:12px;color:#878c96">처리 가능</div><div style="font-size:23px;font-weight:800;letter-spacing:-0.01em;margin-top:4px;color:oklch(0.45 0.1 250)">4건</div></div>
+<div style="flex:1;background:#fff;border:1px solid #e3e5ea;border-radius:11px;padding:14px 16px"><div style="font-size:12px;color:#878c96">아직 처리 불가</div><div style="font-size:23px;font-weight:800;letter-spacing:-0.01em;margin-top:4px;color:oklch(0.52 0.11 75)">2건</div></div>
+</div>
+<div style="display:flex;gap:8px;margin-top:18px">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+<div style="{{ f.style }}" onClick="{{ f.onClick }}">{{ f.label }}</div>
+</sc-for>
+</div>
+</div>
+<div style="margin:16px 28px 12px;background:#fff;border:1px solid #e3e5ea;border-radius:12px;overflow:hidden">
+<div style="display:grid;grid-template-columns:38px 128px 1fr 1.25fr 84px 64px 104px 96px;gap:12px;align-items:center;padding:11px 18px;background:#f7f8fa;border-bottom:1px solid #edeff3;font-size:11.5px;font-weight:600;color:#878c96">
+<span></span><span>주문번호</span><span>이메일</span><span>상품</span><span>금액</span><span>시각</span><span>상태</span><span></span>
+</div>
+<sc-for list="{{ adminRows }}" as="r" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:38px 128px 1fr 1.25fr 84px 64px 104px 96px;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid #f2f3f6">
+<div style="{{ r.checkStyle }}">{{ r.mark }}</div>
+<span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#666b75">{{ r.id }}</span>
+<span style="font-size:13px">{{ r.email }}</span>
+<span style="font-size:13px;color:#44464e">{{ r.items }}</span>
+<span style="font-size:13px;font-weight:600">{{ r.amount }}</span>
+<span style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#666b75">{{ r.time }}</span>
+<span><span style="{{ r.pillStyle }}">{{ r.status }}</span></span>
+<div style="{{ r.actionStyle }}">{{ r.actionLabel }}</div>
+</div>
+</sc-for>
+<div style="padding:12px 18px;font-size:12px;color:#878c96">14:00 이후 접수된 주문은 다음 영업일 오전에 처리할 수 있어요.</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">다음으로: "<a class="dv-oid" href="#1a">1a</a> 모바일 버전도" · "<a class="dv-oid" href="#1b">1b</a>에 빈 상태/에러 상태 추가" · "<a class="dv-oid" href="#1c">1c</a>에 주문 상세 패널 붙이기"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;userTab&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;전체&quot;, &quot;처리 대기&quot;, &quot;처리 완료&quot;], &quot;default&quot;: &quot;전체&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;사용자 페이지&quot;}, &quot;showDeleteModal&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;사용자 페이지&quot;}, &quot;adminFilter&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;전체&quot;, &quot;처리 완료&quot;, &quot;처리 가능&quot;, &quot;처리 불가&quot;], &quot;default&quot;: &quot;전체&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;관리자 페이지&quot;}}">
+class Component extends DCLogic {
+  state = { tab: null, filter: null, selectedId: "GC-2608-0391",
+    editItems: [{ name: "브라질 산토스", weight: "500g", qty: 1, price: 25000 }, { name: "과테말라 안티구아", weight: "200g", qty: 1, price: 14500 }],
+    prodMode: "수정", prodSel: "콜롬비아 수프리모" };
+  renderVals() {
+    const A = "#17181c";
+    const pillBase = { fontSize: 11.5, fontWeight: 600, padding: "4px 9px", borderRadius: 999, whiteSpace: "nowrap" };
+    const pill = s => s === "처리 완료"
+      ? { ...pillBase, background: "oklch(0.95 0.03 150)", color: "oklch(0.45 0.1 150)" }
+      : s === "처리 불가" ? { ...pillBase, background: "oklch(0.96 0.03 75)", color: "oklch(0.52 0.11 75)" }
+      : { ...pillBase, background: "oklch(0.95 0.02 250)", color: "oklch(0.45 0.1 250)" };
+    const products = [
+      { name: "에티오피아 예가체프", note: "자스민 · 베르가못 · 밝은 산미", price: "13,500원" },
+      { name: "콜롬비아 수프리모", note: "카라멜 · 오렌지 · 균형 잡힌 바디", price: "12,000원" },
+      { name: "과테말라 안티구아", note: "다크초콜릿 · 스모키 · 묵직한 여운", price: "14,500원" },
+      { name: "브라질 산토스", note: "헤이즐넛 · 고소함 · 데일리 블렌드", price: "11,000원" }
+    ];
+    const cart = [
+      { name: "에티오피아 예가체프", weight: "200g", qty: 2, price: "27,000원" },
+      { name: "브라질 산토스", weight: "200g", qty: 1, price: "11,000원" }
+    ];
+    const orders = [
+      { id: "GC-2608-0412", date: "8월 27일 09:12", summary: "에티오피아 예가체프 200g ×2", amount: "30,000원", status: "처리 대기" },
+      { id: "GC-2608-0391", date: "8월 26일 16:40", summary: "브라질 산토스 500g 외 1건", amount: "41,500원", status: "처리 대기" },
+      { id: "GC-2608-0327", date: "8월 24일 11:05", summary: "과테말라 안티구아 200g ×1", amount: "17,500원", status: "처리 완료" },
+      { id: "GC-2608-0288", date: "8월 21일 13:22", summary: "콜롬비아 수프리모 500g ×1", amount: "29,000원", status: "처리 완료" }
+    ];
+    const tab = this.state.tab ?? (this.props.userTab ?? "전체");
+    const tabBase = { fontSize: 13, fontWeight: 600, padding: "8px 15px", borderRadius: 999, cursor: "pointer" };
+    const tabs = ["전체", "처리 대기", "처리 완료"].map(label => {
+      const n = label === "전체" ? orders.length : orders.filter(o => o.status === label).length;
+      const active = tab === label;
+      return {
+        label: label + " " + n,
+        style: active ? { ...tabBase, background: A, color: "#fff", border: "1px solid " + A }
+                      : { ...tabBase, background: "#fff", color: "#666b75", border: "1px solid #dfe2e8" },
+        onClick: () => this.setState({ tab: label })
+      };
+    });
+    const userOrders = orders.filter(o => tab === "전체" || o.status === tab).map(o => {
+      const selected = o.id === this.state.selectedId;
+      return { ...o, selected, pillStyle: pill(o.status),
+        cardStyle: selected
+          ? { padding: "14px 16px", border: "1.5px solid " + A, background: "#fff", borderRadius: 10, cursor: "pointer", boxShadow: "0 2px 8px rgba(23,24,28,.08)" }
+          : { padding: "14px 16px", border: "1px solid #e3e5ea", background: "#fff", borderRadius: 10, cursor: "pointer" },
+        onSelect: () => this.setState({ selectedId: o.id }) };
+    });
+    const adminAll = [
+      { id: "GC-2608-0405", email: "mina.park@naver.com", items: "예가체프 200g ×1", amount: "16,500원", time: "07:58", status: "처리 가능", checked: true },
+      { id: "GC-2608-0412", email: "yunchan@naver.com", items: "예가체프 200g ×2", amount: "30,000원", time: "09:12", status: "처리 가능", checked: true },
+      { id: "GC-2608-0418", email: "doyun.kim@naver.com", items: "산토스 500g ×1", amount: "27,000원", time: "10:44", status: "처리 가능", checked: true },
+      { id: "GC-2608-0421", email: "seoa.jung@naver.com", items: "수프리모 200g ×1", amount: "15,000원", time: "11:30", status: "처리 완료", checked: false },
+      { id: "GC-2608-0427", email: "hana.lee@naver.com", items: "안티구아 200g ×2", amount: "32,000원", time: "13:05", status: "처리 가능", checked: true },
+      { id: "GC-2608-0433", email: "jinwoo.seo@naver.com", items: "예가체프 외 1건", amount: "27,500원", time: "13:58", status: "처리 완료", checked: false },
+      { id: "GC-2608-0440", email: "sumin.choi@naver.com", items: "산토스 200g ×1", amount: "14,000원", time: "14:21", status: "처리 불가", checked: false },
+      { id: "GC-2608-0446", email: "gaeun.yoon@naver.com", items: "수프리모 500g ×1", amount: "29,000원", time: "15:07", status: "처리 불가", checked: false }
+    ];
+    const filter = this.state.filter ?? (this.props.adminFilter ?? "전체");
+    const chipBase = { fontSize: 12.5, fontWeight: 600, padding: "7px 13px", borderRadius: 999, cursor: "pointer" };
+    const filters = ["전체", "처리 완료", "처리 가능", "처리 불가"].map(label => {
+      const n = label === "전체" ? adminAll.length : adminAll.filter(r => r.status === label).length;
+      const active = filter === label;
+      return {
+        label: label + " " + n,
+        style: active ? { ...chipBase, background: A, color: "#fff", border: "1px solid " + A }
+                      : { ...chipBase, background: "#fff", color: "#666b75", border: "1px solid #dfe2e8" },
+        onClick: () => this.setState({ filter: label })
+      };
+    });
+    const box = { width: 16, height: 16, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 };
+    const actBase = { fontSize: 12.5, fontWeight: 600, textAlign: "center", padding: "7px 0", borderRadius: 8 };
+    const adminRows = adminAll.filter(r => filter === "전체" || r.status === filter).map(r => ({
+      ...r, pillStyle: pill(r.status),
+      mark: r.checked ? "✓" : "",
+      checkStyle: r.checked ? { ...box, background: A, color: "#fff" } : { ...box, border: "1.5px solid #d2d5dc", background: "#fff" },
+      actionLabel: r.status === "처리 가능" ? "처리" : r.status === "처리 완료" ? "완료됨" : "익일 처리",
+      actionStyle: r.status === "처리 가능" ? { ...actBase, background: A, color: "#fff", cursor: "pointer" }
+        : r.status === "처리 완료" ? { fontSize: 12.5, color: "#9aa0aa", textAlign: "center" }
+        : { ...actBase, background: "#eff0f3", color: "#a7acb6" }
+    }));
+    const fmt = n => n.toLocaleString("ko-KR") + "원";
+    const catalogAll = [
+      { name: "에티오피아 예가체프", weight: "200g", price: 13500 },
+      { name: "콜롬비아 수프리모", weight: "200g", price: 12000 },
+      { name: "과테말라 안티구아", weight: "200g", price: 14500 },
+      { name: "브라질 산토스", weight: "200g", price: 11000 }
+    ];
+    const editItems = this.state.editItems.map((it, i) => ({ ...it,
+      lineLabel: fmt(it.price * it.qty),
+      onInc: () => this.setState(s => ({ editItems: s.editItems.map((x, j) => j === i ? { ...x, qty: x.qty + 1 } : x) })),
+      onDec: () => this.setState(s => ({ editItems: s.editItems.map((x, j) => j === i ? { ...x, qty: Math.max(1, x.qty - 1) } : x) })),
+      onRemove: () => this.setState(s => ({ editItems: s.editItems.filter((x, j) => j !== i) }))
+    }));
+    const inOrder = new Set(this.state.editItems.map(x => x.name));
+    const addBtn = { fontSize: 12.5, fontWeight: 600, padding: "7px 14px", borderRadius: 7, whiteSpace: "nowrap" };
+    const addCatalog = catalogAll.map(c => {
+      const added = inOrder.has(c.name);
+      return { ...c, priceLabel: fmt(c.price),
+        btnLabel: added ? "담김 ✓" : "+ 추가",
+        btnStyle: added ? { ...addBtn, background: "#eff0f3", color: "#9aa0aa" } : { ...addBtn, border: "1.5px solid #17181c", color: "#17181c", cursor: "pointer" },
+        onAdd: () => { if (!added) this.setState(s => ({ editItems: [...s.editItems, { ...c, qty: 1 }] })); } };
+    });
+    const editSubN = this.state.editItems.reduce((a, x) => a + x.price * x.qty, 0);
+    const editSub = fmt(editSubN), editTotal = fmt(editSubN + 3000);
+    const prodAll = [
+      { name: "에티오피아 예가체프", note: "자스민 · 베르가못 · 밝은 산미", price: 13500, status: "판매중" },
+      { name: "콜롬비아 수프리모", note: "카라멜 · 오렌지 · 균형 잡힌 바디", price: 12000, status: "판매중" },
+      { name: "과테말라 안티구아", note: "다크초콜릿 · 스모키 · 묵직한 여운", price: 14500, status: "판매중" },
+      { name: "브라질 산토스", note: "헤이즐넛 · 고소함 · 데일리 블렌드", price: 11000, status: "판매중" },
+      { name: "디카페인 콜롬비아", note: "스위스워터 · 부드러운 단맛", price: 15000, status: "숨김" }
+    ];
+    const prodMode = this.state.prodMode, prodSel = this.state.prodSel;
+    const linkBase = { fontSize: 12.5, fontWeight: 600, cursor: "pointer", padding: "6px 10px", borderRadius: 7 };
+    const prodRows = prodAll.map(p => ({ ...p, priceLabel: fmt(p.price),
+      statusStyle: p.status === "판매중" ? { ...pillBase, background: "oklch(0.95 0.03 150)", color: "oklch(0.45 0.1 150)" } : { ...pillBase, background: "#eff0f3", color: "#878c96" },
+      rowStyle: { display: "grid", gridTemplateColumns: "52px 1.1fr 1.5fr 90px 76px 128px", gap: 12, alignItems: "center", padding: "10px 18px", borderBottom: "1px solid #f2f3f6", background: prodMode === "수정" && prodSel === p.name ? "#f5f6f8" : "#fff" },
+      onEdit: () => this.setState({ prodMode: "수정", prodSel: p.name }),
+      editStyle: { ...linkBase, border: "1px solid #d9dce2", color: "#17181c" },
+      delStyle: { ...linkBase, color: "oklch(0.5 0.12 25)" } }));
+    const formTitle = prodMode === "수정" ? "상품 수정" : "새 상품 등록";
+    const formSub = prodMode === "수정" ? prodSel + " 정보를 변경합니다" : "새 원두 상품을 등록합니다";
+    const formCta = prodMode === "수정" ? "수정 저장" : "등록하기";
+    const onNewProduct = () => this.setState({ prodMode: "등록", prodSel: null });
+    return { products, cart, tabs, userOrders, filters, adminRows, showModal: this.props.showDeleteModal ?? true,
+      editItems, addCatalog, editSub, editTotal, prodRows, formTitle, formSub, formCta, onNewProduct };
+  }
+}
+</script>
+</body>
+</html>
