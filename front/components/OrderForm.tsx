@@ -111,15 +111,6 @@ export default function OrderForm({
         >
           주문 등록하기
         </button>
-
-        {/* 당일 발송 안내 배지 */}
-        <div className="mt-3 p-2.5 rounded-[9px] bg-page border border-line2 flex items-center justify-center gap-1.5 text-[11.5px] text-muted text-center leading-snug">
-          <span className="w-1.5 h-1.5 rounded-full bg-live shrink-0 animate-pulse" />
-          <span>
-            당일 <strong className="font-semibold text-ink">오후 2시 이후</strong>의 주문 건은{" "}
-            <strong className="font-semibold text-ink">다음 날 배송</strong>이 시작됩니다.
-          </span>
-        </div>
       </form>
 
       {/* 주문 완료 확인 모달 (UI 인터랙션) */}
