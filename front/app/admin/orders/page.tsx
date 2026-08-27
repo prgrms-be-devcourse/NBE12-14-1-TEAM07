@@ -14,6 +14,7 @@ interface AdminOrderRow {
   items: string;
   amount: string;
   time: string;
+  createDate: string;
   status: "처리 가능" | "처리 완료";
 }
 
@@ -27,6 +28,7 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     items: `상품 ${activeDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
     time: o.createDate.split("T")[1].slice(0, 5),
+    createDate: o.createDate,
     status: o.orderStatus === "COMPLETED" ? "처리 완료" : "처리 가능",
   };
 }
@@ -44,6 +46,9 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<string>("전체");
   const [deliveryDate, setDeliveryDate] = useState<string>(todayString());
+  const [dateOrder, setDateOrder] = useState<"desc" | "asc">("desc");
+  const [activeSort, setActiveSort] = useState<"date" | "status">("date");
+  const [statusOrder, setStatusOrder] = useState<"ready-first" | "completed-first">("ready-first");
 
   useEffect(() => {
     const load = async () => {
@@ -65,7 +70,23 @@ export default function AdminOrdersPage() {
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
 
-  const filteredOrders = orders.filter((r) => {
+  const sortedOrders = [...orders].sort((a, b) => {
+    const dateDiff = new Date(a.createDate).getTime() - new Date(b.createDate).getTime();
+    const timeOrdered = dateOrder === "desc" ? -dateDiff : dateDiff;
+
+    if (activeSort === "status") {
+      const rank = (s: AdminOrderRow["status"]) =>
+        statusOrder === "ready-first"
+          ? s === "처리 가능" ? 0 : 1
+          : s === "처리 완료" ? 0 : 1;
+      const statusDiff = rank(a.status) - rank(b.status);
+      return statusDiff !== 0 ? statusDiff : timeOrdered;
+    }
+
+    return timeOrdered;
+  });
+
+  const filteredOrders = sortedOrders.filter((r) => {
     if (filter === "전체") return true;
     return r.status === filter;
   });
@@ -110,6 +131,39 @@ export default function AdminOrdersPage() {
             <div className="font-mono text-[11.5px] text-faint">
               처리 기준 · 당일 14:00
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSort("date");
+                setDateOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+              }}
+              className={`h-[42px] px-4 border rounded-[9px] text-[13px] font-semibold transition-colors cursor-pointer ${
+                activeSort === "date"
+                  ? "bg-ink text-white border-ink"
+                  : "bg-white text-ink border-field hover:bg-hover"
+              }`}
+            >
+              {dateOrder === "desc" ? "최신순" : "오래된순"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (activeSort !== "status") {
+                  setActiveSort("status");
+                } else {
+                  setStatusOrder((prev) =>
+                    prev === "ready-first" ? "completed-first" : "ready-first"
+                  );
+                }
+              }}
+              className={`h-[42px] px-4 border rounded-[9px] text-[13px] font-semibold transition-colors cursor-pointer ${
+                activeSort === "status"
+                  ? "bg-ink text-white border-ink"
+                  : "bg-white text-ink border-field hover:bg-hover"
+              }`}
+            >
+              {statusOrder === "ready-first" ? "처리 가능 우선" : "처리 완료 우선"}
+            </button>
             <div className="hidden sm:block flex-1" />
             <button
               type="button"
