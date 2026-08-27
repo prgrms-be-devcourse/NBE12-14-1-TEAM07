@@ -1,4 +1,4 @@
-import { Product, OrdersDto, UserOrdersDto, RsData } from "./types";
+import { Product, OrdersDto, UserOrdersDto, OrdersSaveReqBody, RsData } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
@@ -101,6 +101,30 @@ export async function fetchMyOrders(email : string, deliveryDate? : string): Pro
   } catch(error) {
     console.error(
       "서버에서 주문 목록을 가져오는데 실패했습니다.", error
+    );
+    throw error;
+  }
+}
+
+export async function createOrder(body : OrdersSaveReqBody): Promise<OrdersDto> {
+  try {
+    const res = await fetch(`${API_BASE}/api/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      throw new Error(`주문 등록 실패 (${res.status})`);
+    }
+
+    const json: RsData<OrdersDto> = await res.json();
+    return json.data;
+  } catch (error) {
+    console.error(
+      "서버에 주문을 등록하는데 실패했습니다.", error
     );
     throw error;
   }

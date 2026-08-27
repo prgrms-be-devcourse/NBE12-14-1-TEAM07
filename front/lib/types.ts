@@ -21,6 +21,7 @@ export interface OrdersDetailDto {
   id : number;
   ordersId : number;
   productId : number;
+  productName : string;
   quantity : number;
   totalPrice : number;
   status : OrderDetailStatus;
@@ -37,7 +38,18 @@ export interface OrdersDto {
 
 export interface UserOrdersDto {
   id : number;
+  modifyDate : string;
   ordersDetails : OrdersDetailDto[];
+}
+
+export interface OrdersDetailRequest {
+  productId: number;
+  quantity: number;
+}
+
+export interface OrdersSaveReqBody {
+  email: string;
+  ordersDetails: OrdersDetailRequest[];
 }
 
 export interface RsData<T> {
