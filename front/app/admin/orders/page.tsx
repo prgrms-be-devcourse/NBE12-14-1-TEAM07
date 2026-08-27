@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
-import { fetchOrders } from "@/lib/api";
+import { fetchOrders, completeOrders } from "@/lib/api";
 import { OrdersDto } from "@/lib/types";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
@@ -14,6 +14,7 @@ interface AdminOrderRow {
   items: string;
   amount: string;
   time: string;
+  createDate: string;
   status: "처리 가능" | "처리 완료";
 }
 
@@ -27,6 +28,7 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     items: `상품 ${activeDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
     time: o.createDate.split("T")[1].slice(0, 5),
+    createDate: o.createDate,
     status: o.orderStatus === "COMPLETED" ? "처리 완료" : "처리 가능",
   };
 }
@@ -44,6 +46,12 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<string>("전체");
   const [deliveryDate, setDeliveryDate] = useState<string>(todayString());
+  const [dateOrder, setDateOrder] = useState<"desc" | "asc">("desc");
+  const [activeSort, setActiveSort] = useState<"date" | "status">("date");
+  const [statusOrder, setStatusOrder] = useState<"ready-first" | "completed-first">("ready-first");
+  const [processResult, setProcessResult] = useState<
+    { type: "success"; count: number } | { type: "error" } | { type: "empty" } | null
+  >(null);
 
   useEffect(() => {
     const load = async () => {
@@ -65,32 +73,41 @@ export default function AdminOrdersPage() {
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
 
-  const filteredOrders = orders.filter((r) => {
+  const sortedOrders = [...orders].sort((a, b) => {
+    const dateDiff = new Date(a.createDate).getTime() - new Date(b.createDate).getTime();
+    const timeOrdered = dateOrder === "desc" ? -dateDiff : dateDiff;
+
+    if (activeSort === "status") {
+      const rank = (s: AdminOrderRow["status"]) =>
+        statusOrder === "ready-first"
+          ? s === "처리 가능" ? 0 : 1
+          : s === "처리 완료" ? 0 : 1;
+      const statusDiff = rank(a.status) - rank(b.status);
+      return statusDiff !== 0 ? statusDiff : timeOrdered;
+    }
+
+    return timeOrdered;
+  });
+
+  const filteredOrders = sortedOrders.filter((r) => {
     if (filter === "전체") return true;
     return r.status === filter;
   });
 
-  // Batch process all ready orders
-  const handleBatchProcess = () => {
+  // Batch process all ready orders for the selected delivery date
+  const handleBatchProcess = async () => {
     if (readyCount === 0) {
-      alert("현재 처리 가능한 주문이 없습니다.");
+      setProcessResult({ type: "empty" });
       return;
     }
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.status === "처리 가능" ? { ...r, status: "처리 완료" } : r
-      )
-    );
-    alert(`처리 가능한 ${readyCount}건의 주문이 일괄 처리 완료되었습니다.`);
-  };
-
-  // Single process
-  const handleSingleProcess = (id: string) => {
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: "처리 완료" } : r
-      )
-    );
+    try {
+      const count = await completeOrders(ADMIN_EMAIL, deliveryDate);
+      setProcessResult({ type: "success", count });
+      const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
+      setOrders(data.map(toAdminOrderRow));
+    } catch {
+      setProcessResult({ type: "error" });
+    }
   };
 
   return (
@@ -117,6 +134,39 @@ export default function AdminOrdersPage() {
             <div className="font-mono text-[11.5px] text-faint">
               처리 기준 · 당일 14:00
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSort("date");
+                setDateOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+              }}
+              className={`h-[42px] px-4 border rounded-[9px] text-[13px] font-semibold transition-colors cursor-pointer ${
+                activeSort === "date"
+                  ? "bg-ink text-white border-ink"
+                  : "bg-white text-ink border-field hover:bg-hover"
+              }`}
+            >
+              {dateOrder === "desc" ? "최신순" : "오래된순"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (activeSort !== "status") {
+                  setActiveSort("status");
+                } else {
+                  setStatusOrder((prev) =>
+                    prev === "ready-first" ? "completed-first" : "ready-first"
+                  );
+                }
+              }}
+              className={`h-[42px] px-4 border rounded-[9px] text-[13px] font-semibold transition-colors cursor-pointer ${
+                activeSort === "status"
+                  ? "bg-ink text-white border-ink"
+                  : "bg-white text-ink border-field hover:bg-hover"
+              }`}
+            >
+              {statusOrder === "ready-first" ? "처리 가능 우선" : "처리 완료 우선"}
+            </button>
             <div className="hidden sm:block flex-1" />
             <button
               type="button"
@@ -177,14 +227,13 @@ export default function AdminOrdersPage() {
         {/* Orders Table */}
         <div className="m-[16px_28px_24px] bg-white border border-line rounded-[12px] overflow-hidden shadow-2xs">
           {/* Table Header */}
-          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
+          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
             <span>주문번호</span>
             <span>이메일</span>
             <span>상품</span>
             <span>금액</span>
             <span>시각</span>
             <span>상태</span>
-            <span></span>
           </div>
 
           {/* Table Rows */}
@@ -201,7 +250,7 @@ export default function AdminOrdersPage() {
               filteredOrders.map((row) => (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
+                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
                 >
                   {/* Order ID */}
                   <span className="font-mono text-[12px] text-muted truncate">
@@ -230,29 +279,69 @@ export default function AdminOrdersPage() {
                   <div>
                     <StatusPill status={row.status} />
                   </div>
-
-                  {/* Action Button */}
-                  <div>
-                    {row.status === "처리 가능" ? (
-                      <button
-                        type="button"
-                        onClick={() => handleSingleProcess(row.id)}
-                        className="w-full py-1 bg-ink text-white rounded-lg text-[12px] font-semibold hover:bg-black transition-colors cursor-pointer"
-                      >
-                        처리
-                      </button>
-                    ) : (
-                      <div className="text-[12.5px] text-disabled text-center">
-                        완료됨
-                      </div>
-                    )}
-                  </div>
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
+
+      {/* 일괄 처리 결과 모달 */}
+      {processResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white border border-line rounded-[12px] p-6 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-150">
+            {processResult.type === "success" ? (
+              <>
+                <div className="w-10 h-10 rounded-full bg-ok-bg text-ok-fg flex items-center justify-center font-bold text-lg mb-3">
+                  ✓
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  주문 처리가 완료되었습니다!
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  {deliveryDate} 배송 건 중 처리 가능했던{" "}
+                  <span className="font-semibold text-ink">{processResult.count}건</span>의
+                  주문이 일괄 처리되었습니다.
+                </p>
+              </>
+            ) : processResult.type === "empty" ? (
+              <>
+                <div className="w-10 h-10 rounded-full bg-info-bg text-info-fg flex items-center justify-center font-bold text-lg mb-3">
+                  i
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  처리할 주문이 없습니다
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  {deliveryDate} 배송 건 중 현재 처리 가능한 주문이 없어요.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-full bg-warn-bg text-warn-fg flex items-center justify-center font-bold text-lg mb-3">
+                  !
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  일괄 처리에 실패했습니다
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  잠시 후 다시 시도해주세요.
+                </p>
+              </>
+            )}
+
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => setProcessResult(null)}
+                className="w-full h-10 bg-ink text-white rounded-lg text-[13px] font-semibold hover:bg-black transition-colors cursor-pointer"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -54,6 +54,29 @@ export async function fetchOrders(email: string, deliveryDate? : string): Promis
   }
 }
 
+export async function completeOrders(email: string, date: string): Promise<number> {
+  try {
+    const params = new URLSearchParams({ email });
+
+    const res = await fetch(`${API_BASE}/api/orders/${date}/complete?${params.toString()}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`일괄 처리 실패 (${res.status})`);
+    }
+
+    const json: RsData<number> = await res.json();
+    return json.data;
+  } catch (error) {
+    console.error("주문 일괄 처리에 실패했습니다.", error);
+    throw error;
+  }
+}
+
 export async function fetchMyOrders(email : string, deliveryDate? : string): Promise<UserOrdersDto[]> {
   try {
     const params = new URLSearchParams({ email });
