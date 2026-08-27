@@ -50,7 +50,7 @@ export default function AdminOrdersPage() {
   const [activeSort, setActiveSort] = useState<"date" | "status">("date");
   const [statusOrder, setStatusOrder] = useState<"ready-first" | "completed-first">("ready-first");
   const [processResult, setProcessResult] = useState<
-    { type: "success"; count: number } | { type: "error" } | null
+    { type: "success"; count: number } | { type: "error" } | { type: "empty" } | null
   >(null);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function AdminOrdersPage() {
   // Batch process all ready orders for the selected delivery date
   const handleBatchProcess = async () => {
     if (readyCount === 0) {
-      alert("현재 처리 가능한 주문이 없습니다.");
+      setProcessResult({ type: "empty" });
       return;
     }
     try {
@@ -302,6 +302,18 @@ export default function AdminOrdersPage() {
                   {deliveryDate} 배송 건 중 처리 가능했던{" "}
                   <span className="font-semibold text-ink">{processResult.count}건</span>의
                   주문이 일괄 처리되었습니다.
+                </p>
+              </>
+            ) : processResult.type === "empty" ? (
+              <>
+                <div className="w-10 h-10 rounded-full bg-info-bg text-info-fg flex items-center justify-center font-bold text-lg mb-3">
+                  i
+                </div>
+                <h3 className="text-[17px] font-bold text-ink">
+                  처리할 주문이 없습니다
+                </h3>
+                <p className="text-[13px] text-muted mt-2 leading-relaxed">
+                  {deliveryDate} 배송 건 중 현재 처리 가능한 주문이 없어요.
                 </p>
               </>
             ) : (
