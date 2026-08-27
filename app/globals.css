@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  --font-mono: ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --color-ink: #17181c;
+  --color-body: #44464e;
+  --color-muted: #666b75;
+  --color-faint: #878c96;
+  --color-disabled: #a7acb6;
+  --color-canvas: #eceef1;
+  --color-page: #f7f8fa;
+  --color-hover: #f1f2f5;
+  --color-selected: #f5f6f8;
+  --color-line: #e3e5ea;
+  --color-line2: #edeff3;
+  --color-line3: #f2f3f6;
+  --color-field: #d9dce2;
+  --color-chip: #dfe2e8;
+  --color-chipbg: #eff0f3;
+
+  --color-ok-bg: oklch(0.95 0.03 150);
+  --color-ok-fg: oklch(0.45 0.1 150);
+
+  --color-info-bg: oklch(0.95 0.02 250);
+  --color-info-fg: oklch(0.45 0.1 250);
+
+  --color-warn-bg: oklch(0.96 0.03 75);
+  --color-warn-fg: oklch(0.52 0.11 75);
+
+  --color-danger: oklch(0.5 0.12 25);
+  --color-danger-hover: oklch(0.44 0.12 25);
+  --color-danger-bg: oklch(0.97 0.02 25);
+
+  --color-live: oklch(0.75 0.13 155);
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom background pattern for product cards */
+.bg-product-stripe {
+  background: repeating-linear-gradient(45deg, #e9ebef 0 10px, #f4f5f7 10px 20px);
+}
+

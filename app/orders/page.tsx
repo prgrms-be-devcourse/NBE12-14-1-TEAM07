@@ -1,0 +1,469 @@
+"use client";
+
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Logo from "@/components/Logo";
+import StatusPill from "@/components/StatusPill";
+import QtyStepper from "@/components/QtyStepper";
+import ConfirmDialog from "@/components/ConfirmDialog";
+
+interface OrderItem {
+  name: string;
+  weight: string;
+  qty: number;
+  price: number;
+}
+
+interface OrderRecord {
+  id: string;
+  date: string;
+  summary: string;
+  amount: number;
+  status: "처리 대기" | "처리 완료";
+  items: OrderItem[];
+  email: string;
+  address: string;
+}
+
+const CATALOG = [
+  { name: "에티오피아 예가체프", weight: "200g", price: 13500 },
+  { name: "콜롬비아 수프리모", weight: "200g", price: 12000 },
+  { name: "과테말라 안티구아", weight: "200g", price: 14500 },
+  { name: "브라질 산토스", weight: "200g", price: 11000 },
+];
+
+const INITIAL_ORDERS: OrderRecord[] = [
+  {
+    id: "GC-2608-0412",
+    date: "8월 27일 09:12",
+    summary: "에티오피아 예가체프 200g ×2",
+    amount: 30000,
+    status: "처리 대기",
+    email: "yunchan@naver.com",
+    address: "서울 마포구 성미산로 29길 12",
+    items: [{ name: "에티오피아 예가체프", weight: "200g", qty: 2, price: 15000 }],
+  },
+  {
+    id: "GC-2608-0391",
+    date: "8월 26일 16:40",
+    summary: "브라질 산토스 500g 외 1건",
+    amount: 41500,
+    status: "처리 대기",
+    email: "yunchan@naver.com",
+    address: "서울 마포구 성미산로 29길 12",
+    items: [
+      { name: "브라질 산토스", weight: "500g", qty: 1, price: 27000 },
+      { name: "과테말라 안티구아", weight: "200g", qty: 1, price: 14500 },
+    ],
+  },
+  {
+    id: "GC-2608-0327",
+    date: "8월 24일 11:05",
+    summary: "과테말라 안티구아 200g ×1",
+    amount: 17500,
+    status: "처리 완료",
+    email: "yunchan@naver.com",
+    address: "서울 마포구 성미산로 29길 12",
+    items: [{ name: "과테말라 안티구아", weight: "200g", qty: 1, price: 17500 }],
+  },
+  {
+    id: "GC-2608-0288",
+    date: "8월 21일 13:22",
+    summary: "콜롬비아 수프리모 500g ×1",
+    amount: 29000,
+    status: "처리 완료",
+    email: "yunchan@naver.com",
+    address: "서울 마포구 성미산로 29길 12",
+    items: [{ name: "콜롬비아 수프리모", weight: "500g", qty: 1, price: 29000 }],
+  },
+];
+
+function OrdersContent() {
+  const searchParams = useSearchParams();
+  const userEmail = searchParams.get("email") || "yunchan@naver.com";
+
+  const [orders, setOrders] = useState<OrderRecord[]>(INITIAL_ORDERS);
+  const [selectedId, setSelectedId] = useState<string>("GC-2608-0391");
+  const [currentTab, setCurrentTab] = useState<string>("전체");
+
+  // Selected Order
+  const selectedOrder = orders.find((o) => o.id === selectedId) || orders[0];
+
+  // Edit draft states
+  const [editEmail, setEditEmail] = useState(selectedOrder?.email || userEmail);
+  const [editAddress, setEditAddress] = useState(selectedOrder?.address || "");
+  const [editItems, setEditItems] = useState<OrderItem[]>(selectedOrder?.items || []);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  // Sync draft when selected order changes
+  const handleSelectOrder = (order: OrderRecord) => {
+    setSelectedId(order.id);
+    setEditEmail(order.email);
+    setEditAddress(order.address);
+    setEditItems(order.items.map((it) => ({ ...it })));
+  };
+
+  // Filter orders by tab
+  const filteredOrders = orders.filter((o) => {
+    if (currentTab === "전체") return true;
+    return o.status === currentTab;
+  });
+
+  const tabCounts = {
+    전체: orders.length,
+    "처리 대기": orders.filter((o) => o.status === "처리 대기").length,
+    "처리 완료": orders.filter((o) => o.status === "처리 완료").length,
+  };
+
+  // Draft calculations
+  const editSubtotal = editItems.reduce((acc, it) => acc + it.price * it.qty, 0);
+  const inOrderNames = new Set(editItems.map((it) => it.name));
+
+  // Save changes
+  const handleSaveEdit = () => {
+    if (editItems.length === 0) {
+      alert("주문 상품은 최소 1개 이상이어야 합니다.");
+      return;
+    }
+
+    const summary =
+      editItems.length === 1
+        ? `${editItems[0].name} ${editItems[0].weight} ×${editItems[0].qty}`
+        : `${editItems[0].name} ${editItems[0].weight} 외 ${editItems.length - 1}건`;
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === selectedId
+          ? {
+              ...o,
+              email: editEmail,
+              address: editAddress,
+              items: editItems,
+              amount: editSubtotal,
+              summary,
+            }
+          : o
+      )
+    );
+
+    alert("주문 수정이 저장되었습니다.");
+  };
+
+  // Confirm delete
+  const handleConfirmDelete = () => {
+    if (!deleteTargetId) return;
+    setOrders((prev) => prev.filter((o) => o.id !== deleteTargetId));
+    setDeleteModalOpen(false);
+    if (selectedId === deleteTargetId) {
+      const remaining = orders.filter((o) => o.id !== deleteTargetId);
+      if (remaining.length > 0) {
+        handleSelectOrder(remaining[0]);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-canvas p-0 sm:p-6 md:p-8 flex justify-center items-start">
+      {/* 1180px Main Container */}
+      <div className="w-full max-w-[1180px] bg-page border border-line rounded-[12px] shadow-sm overflow-hidden flex flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between px-7 py-[18px] border-b border-line bg-white">
+          <Logo showSubtitle={false} />
+          <div className="flex items-center gap-2 text-[12.5px] text-muted">
+            <span className="w-[26px] h-[26px] rounded-full bg-ink text-white flex items-center justify-center font-bold text-[12px]">
+              {userEmail.charAt(0).toUpperCase()}
+            </span>
+            <span>{userEmail}</span>
+          </div>
+        </header>
+
+        {/* Page Title & Status Tabs */}
+        <div className="px-7 pt-7 pb-2.5">
+          <h1 className="font-extrabold tracking-[-0.02em] text-[22px] text-ink">
+            주문 내역
+          </h1>
+          <p className="mt-1.5 text-[13px] text-muted">
+            이메일로 조회한 내 주문이에요. 주문을 클릭하면 수정하거나 삭제할 수 있어요.
+          </p>
+
+          <div className="flex gap-2 mt-4.5">
+            {(["전체", "처리 대기", "처리 완료"] as const).map((tab) => {
+              const active = currentTab === tab;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setCurrentTab(tab)}
+                  className={`text-[13px] font-semibold px-4 py-2 rounded-full transition-all cursor-pointer ${
+                    active
+                      ? "bg-ink text-white border border-ink"
+                      : "bg-white text-muted border border-chip hover:bg-hover"
+                  }`}
+                >
+                  {tab} {tabCounts[tab]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 2-Column Section */}
+        <div className="flex flex-col lg:flex-row gap-[22px] p-[18px_28px_28px] items-start">
+          {/* Left Column: Orders List */}
+          <div className="flex-1 w-full flex flex-col gap-2.5">
+            {filteredOrders.length === 0 ? (
+              <div className="py-16 text-center text-muted bg-white border border-line rounded-[12px]">
+                주문 내역이 없습니다.
+              </div>
+            ) : (
+              filteredOrders.map((order) => {
+                const isSelected = order.id === selectedId;
+                return (
+                  <div
+                    key={order.id}
+                    onClick={() => handleSelectOrder(order)}
+                    className={`p-[14px_16px] rounded-[10px] cursor-pointer transition-all bg-white ${
+                      isSelected
+                        ? "border-[1.5px] border-ink shadow-[0_2px_8px_rgba(23,24,28,0.08)]"
+                        : "border border-line hover:border-faint"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[11.5px] text-faint">
+                        {order.id}
+                      </span>
+                      <StatusPill status={order.status} />
+                    </div>
+
+                    <div className="text-[14.5px] font-semibold text-ink mt-2">
+                      {order.summary}
+                    </div>
+
+                    <div className="text-[12.5px] text-muted mt-1">
+                      {order.date} · {order.amount.toLocaleString("ko-KR")}원
+                    </div>
+
+                    {isSelected && (
+                      <div className="flex mt-3.5 pt-2 border-t border-line2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTargetId(order.id);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="w-full h-9 flex items-center justify-center border-[1.5px] border-danger text-danger rounded-lg text-[13px] font-semibold hover:bg-danger-bg transition-colors cursor-pointer"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Right Column: Order Detail & Edit Panel */}
+          {selectedOrder && (
+            <div className="w-full lg:w-[420px] flex-none bg-white border border-line rounded-[12px] p-5 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold tracking-[-0.01em] text-[16px] text-ink">
+                  주문 상세 · 수정
+                </span>
+                <StatusPill status={selectedOrder.status} />
+              </div>
+
+              <div className="mt-3.5 flex flex-col gap-1.5 text-[12.5px]">
+                <div className="flex justify-between">
+                  <span className="text-faint">주문번호</span>
+                  <span className="font-mono text-ink font-medium">
+                    {selectedOrder.id}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-faint">주문일시</span>
+                  <span className="text-ink">{selectedOrder.date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-faint">합계 금액</span>
+                  <span className="font-bold text-ink">
+                    {editSubtotal.toLocaleString("ko-KR")}원
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-line2 my-4" />
+
+              {/* Editable Fields */}
+              <div className="font-mono text-[11px] text-faint mb-2.5">
+                수정 가능한 항목
+              </div>
+              <div className="flex flex-col gap-2.5 mb-4">
+                <div>
+                  <div className="text-[12px] font-semibold text-muted mb-1">
+                    이메일
+                  </div>
+                  <input
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="w-full h-9.5 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
+                  />
+                </div>
+                <div>
+                  <div className="text-[12px] font-semibold text-muted mb-1">
+                    주소
+                  </div>
+                  <input
+                    type="text"
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    className="w-full h-9.5 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Order Items List */}
+              <div className="font-mono text-[11px] text-faint mb-2">
+                주문 상품
+              </div>
+              <div className="flex flex-col gap-2">
+                {editItems.map((item, idx) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center gap-2.5 p-2.5 border border-line2 rounded-[9px] bg-page"
+                  >
+                    <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
+                      {item.name}{" "}
+                      <span className="text-faint text-[11.5px]">
+                        {item.weight}
+                      </span>
+                    </div>
+
+                    <QtyStepper
+                      quantity={item.qty}
+                      min={1}
+                      onIncrease={() => {
+                        setEditItems((prev) =>
+                          prev.map((x, i) =>
+                            i === idx ? { ...x, qty: x.qty + 1 } : x
+                          )
+                        );
+                      }}
+                      onDecrease={() => {
+                        setEditItems((prev) =>
+                          prev.map((x, i) =>
+                            i === idx ? { ...x, qty: Math.max(1, x.qty - 1) } : x
+                          )
+                        );
+                      }}
+                    />
+
+                    <div className="w-[60px] text-right text-[13px] font-semibold text-ink">
+                      {(item.price * item.qty).toLocaleString("ko-KR")}원
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditItems((prev) => prev.filter((_, i) => i !== idx));
+                      }}
+                      className="w-6 h-6 flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
+                      title="항목 제거"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Catalog Items (2a) */}
+              <div className="font-mono text-[11px] text-faint mt-4 mb-2">
+                상품 추가
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {CATALOG.map((cat) => {
+                  const alreadyAdded = inOrderNames.has(cat.name);
+                  return (
+                    <div
+                      key={cat.name}
+                      className="flex items-center gap-2.5 p-2 px-3 border border-line2 rounded-[9px] bg-white"
+                    >
+                      <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
+                        {cat.name}{" "}
+                        <span className="text-faint text-[11.5px]">
+                          {cat.weight}
+                        </span>
+                      </div>
+                      <div className="text-[12.5px] text-muted">
+                        {cat.price.toLocaleString("ko-KR")}원
+                      </div>
+                      <button
+                        type="button"
+                        disabled={alreadyAdded}
+                        onClick={() => {
+                          if (!alreadyAdded) {
+                            setEditItems((prev) => [
+                              ...prev,
+                              { ...cat, qty: 1 },
+                            ]);
+                          }
+                        }}
+                        className={`text-[12px] font-semibold px-3 py-1 rounded-[7px] transition-colors ${
+                          alreadyAdded
+                            ? "bg-chipbg text-disabled cursor-not-allowed"
+                            : "border-[1.5px] border-ink text-ink hover:bg-hover cursor-pointer"
+                        }`}
+                      >
+                        {alreadyAdded ? "담김 ✓" : "+ 추가"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 mt-5">
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  className="flex-1 h-[42px] flex items-center justify-center bg-ink text-white rounded-[9px] text-[13.5px] font-semibold hover:bg-black transition-colors cursor-pointer"
+                >
+                  수정 저장
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectOrder(selectedOrder)}
+                  className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={deleteModalOpen}
+        title="주문을 삭제할까요?"
+        description={`${deleteTargetId} · 삭제한 주문은 되돌릴 수 없어요.`}
+        confirmText="삭제하기"
+        cancelText="취소"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteModalOpen(false)}
+      />
+    </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
+      <OrdersContent />
+    </Suspense>
+  );
+}
