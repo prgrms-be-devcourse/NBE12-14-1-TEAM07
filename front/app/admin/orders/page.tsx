@@ -86,15 +86,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // Single process
-  const handleSingleProcess = (id: string) => {
-    setOrders((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: "처리 완료" } : r
-      )
-    );
-  };
-
   return (
     <div className="min-h-screen bg-canvas p-0 sm:p-6 md:p-8 flex justify-center items-start">
       {/* 1180px Main Container */}
@@ -179,14 +170,13 @@ export default function AdminOrdersPage() {
         {/* Orders Table */}
         <div className="m-[16px_28px_24px] bg-white border border-line rounded-[12px] overflow-hidden shadow-2xs">
           {/* Table Header */}
-          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
+          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
             <span>주문번호</span>
             <span>이메일</span>
             <span>상품</span>
             <span>금액</span>
             <span>시각</span>
             <span>상태</span>
-            <span></span>
           </div>
 
           {/* Table Rows */}
@@ -203,7 +193,7 @@ export default function AdminOrdersPage() {
               filteredOrders.map((row) => (
                 <div
                   key={row.id}
-                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_90px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
+                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
                 >
                   {/* Order ID */}
                   <span className="font-mono text-[12px] text-muted truncate">
@@ -231,23 +221,6 @@ export default function AdminOrdersPage() {
                   {/* Status Pill */}
                   <div>
                     <StatusPill status={row.status} />
-                  </div>
-
-                  {/* Action Button */}
-                  <div>
-                    {row.status === "처리 가능" ? (
-                      <button
-                        type="button"
-                        onClick={() => handleSingleProcess(row.id)}
-                        className="w-full py-1 bg-ink text-white rounded-lg text-[12px] font-semibold hover:bg-black transition-colors cursor-pointer"
-                      >
-                        처리
-                      </button>
-                    ) : (
-                      <div className="text-[12.5px] text-disabled text-center">
-                        완료됨
-                      </div>
-                    )}
                   </div>
                 </div>
               ))
