@@ -145,8 +145,13 @@ public class OrdersController {
     @Transactional
     public RsData<Integer> complete(
             // 문자열 자동으로 LocalDtae객체로 변환해서 파라미터 넣기.
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam String email
     ) {
+        if (!adminEmail.equalsIgnoreCase(email)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "권한이 없습니다");
+        }
+
         int count = ordersService.completeOrders(date);
         return new RsData<>(
                 "200-1",
