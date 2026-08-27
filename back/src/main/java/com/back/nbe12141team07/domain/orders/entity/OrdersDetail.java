@@ -20,8 +20,6 @@ public class OrdersDetail extends BaseEntity {
     private Product product;
 
     private int quantity;
-
-    // 합계 가격
     private int totalPrice;
 
     public void updateOrderQuantity(int quantity) {
@@ -35,3 +33,6 @@ public class OrdersDetail extends BaseEntity {
         this.totalPrice = totalPrice;
     }
 }
+
+
+

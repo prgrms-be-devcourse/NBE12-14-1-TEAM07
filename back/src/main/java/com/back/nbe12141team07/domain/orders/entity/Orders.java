@@ -5,11 +5,10 @@ import com.back.nbe12141team07.global.jpa.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,7 +16,7 @@ import java.util.List;
 public class Orders extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "users_id", nullable = false)
     private Users users;
 
     @OneToMany(
@@ -26,6 +25,11 @@ public class Orders extends BaseEntity {
             orphanRemoval = true
     )
     private List<OrdersDetail> ordersDetails = new ArrayList<>();
+
+    //상세 주문 삭제
+    public void removeOrderDetail(OrdersDetail detail) {
+        ordersDetails.remove(detail);
+    }
 
     public Orders(Users users) {
         this.users = users;
@@ -36,8 +40,11 @@ public class Orders extends BaseEntity {
         ordersDetails.add(detail);
     }
 
-    //상세 주문 삭제
-    public void removeOrderDetail(OrdersDetail detail) {
-        ordersDetails.remove(detail);
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.ORDERED;
+
+    public void complete() {
+        this.status = OrderStatus.COMPLETED;
     }
 }

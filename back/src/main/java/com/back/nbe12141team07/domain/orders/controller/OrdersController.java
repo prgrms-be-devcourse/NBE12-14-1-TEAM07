@@ -8,12 +8,12 @@ import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 import com.back.nbe12141team07.domain.orders.service.OrdersService;
 import com.back.nbe12141team07.global.exception.BusinessException;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -30,6 +30,19 @@ public class OrdersController {
 
     private final OrdersService ordersService;
 
+    @DeleteMapping("/{orderId}/details/{detailId}")
+    public RsData<Void> cancelDetail(
+            @PathVariable int orderId,
+            @PathVariable int detailId
+    ) {
+        ordersService.cancelOrderDetail(orderId, detailId);
+
+        return new RsData<>(
+                "200-1",
+                "상세 주문이 취소되었습니다."
+        );
+    }
+
     record OrdersSaveReqBody (
             String email,
             List<OrdersDetailRequest> ordersDetails
@@ -37,6 +50,7 @@ public class OrdersController {
     }
 
     @PostMapping
+    @Transactional
     public RsData<OrdersDto> save(@Valid @RequestBody OrdersSaveReqBody reqBody) {
         Orders orders = ordersService.createOrders(reqBody.email(), reqBody.ordersDetails);
 
@@ -47,14 +61,29 @@ public class OrdersController {
         );
     }
 
+    @GetMapping("/{id}")
+    @Transactional
+    public OrdersDto detail(@PathVariable int id) {
+        Orders orders = ordersService.findById(id);
+
+        return new OrdersDto(orders);
+    }
+
     // 사용자 주문 다건 조회 -> email 기준 + 같은 날짜 기준
     // /{email}로 받았다가 단건 조회랑 Spring의 경로 충돌 문제로 /me로 변환 후
     // email을 RequestParam 조건으로 변경 (URL 방식 -> 쿼리 스트링 방식)
     @GetMapping("/me")
-    public RsData<List<OrdersDto>> getUserOrderList(
-            @RequestParam String email
+    public RsData<List<OrdersDto>> getMyOrders(
+            @RequestParam String email,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate deliveryDate
     ) {
-        List<Orders> orders = ordersService.getUserOrders(email);
+        LocalDate target = (deliveryDate != null)
+                ? deliveryDate
+                : ordersService.resolveDeliveryDate(LocalDateTime.now());
+
+        List<Orders> orders = ordersService.getMyOrders(email, target);
+
         return new RsData<> (
                 "200-1",
                 "사용자 권한으로 주문이 다건 조회되었습니다",
@@ -64,7 +93,7 @@ public class OrdersController {
 
     // 관리자 주문 다건 조회 -> 배송일 기준
     @GetMapping
-    public RsData<List<OrdersDto>> getUsersOrderList(
+    public RsData<List<OrdersDto>> searchOrders(
             // 관리자 이메일 검증을 위해 email 필요, deliveryDate 기준으로 조회
             @RequestParam String email,
             @RequestParam(required = false)
@@ -80,7 +109,7 @@ public class OrdersController {
                 ? deliveryDate
                 : ordersService.resolveDeliveryDate(LocalDateTime.now());
 
-        List<Orders> orders = ordersService.getUsersOrders(target);
+        List<Orders> orders = ordersService.searchOrders(target);
 
         return new RsData<>(
                 "200-1",
@@ -89,45 +118,47 @@ public class OrdersController {
         );
     }
 
-    @GetMapping("/{id}")
-    @Transactional
-    public OrdersDto detail(@PathVariable int id) {
-        Orders orders = ordersService.findById(id);
-
-        return new OrdersDto(orders);
-    }
-
-    // develop에서 추가된 상세 주문 취소
-    @DeleteMapping("/{orderId}/details/{detailId}")
-    public RsData<Void> cancelDetail(
-            @PathVariable int orderId,
-            @PathVariable int detailId
-    ) {
-        ordersService.cancelOrderDetail(orderId, detailId);
-
-        return new RsData<>(
-                "200-1",
-                "상세 주문이 취소되었습니다."
-        );
-    }
-
     record OrderModifyReqBody(
-            int orderDetailId,
             int quantity
     ) {
     }
-
-    @PatchMapping("/{id}")
+    @PatchMapping("/{orderId}/details/{detailId}")
     public RsData<OrdersDetailDto> modifyOrder(
-            @PathVariable int id,
+            @PathVariable int orderId,
+            @PathVariable int detailId,
             @RequestBody OrderModifyReqBody orderModifyBody
     ) {
-        OrdersDetail order = ordersService.modifyOrders(id, orderModifyBody.orderDetailId, orderModifyBody.quantity);
+        OrdersDetail orderDetail = ordersService.modifyOrders(orderId, detailId, orderModifyBody.quantity());
 
         return new RsData<OrdersDetailDto>(
                 "200-1",
                 "주문이 수정되었습니다",
-                new OrdersDetailDto(order)
+                new OrdersDetailDto(orderDetail)
+        );
+    }
+
+    // DELETE /api/orders/{id} : 주문 삭제
+    @DeleteMapping("/{id}")
+    @Transactional
+    public RsData<Void> delete(@PathVariable int id) {
+        ordersService.deleteOrders(id);
+        return new RsData<>(
+                "200-1",
+                "%d번 주문이 삭제되었습니다.".formatted(id)
+        );
+    }
+
+    @PostMapping("/{date}/complete")
+    @Transactional
+    public RsData<Integer> complete(
+            // 문자열 자동으로 LocalDtae객체로 변환해서 파라미터 넣기.
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        int count = ordersService.completeOrders(date);
+        return new RsData<>(
+                "200-1",
+                "%d건의 주문이 처리 완료되었습니다.".formatted(count),
+                count
         );
     }
 }
