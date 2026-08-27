@@ -7,6 +7,7 @@ import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
 import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
+import com.back.nbe12141team07.domain.orders.entity.OrderDetailStatus;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
@@ -156,7 +157,15 @@ public class OrdersService {
         List<Orders> orders = ordersRepository
                 .findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatus(start, end, OrderStatus.ORDERED);
 
-        orders.forEach(Orders::complete);
+
+        orders.forEach(order -> {
+            order.complete();
+            order.getOrdersDetails().forEach(detail -> {
+                if(detail.getStatus() != OrderDetailStatus.CANCELED) {
+                    detail.complete();
+                }
+            });
+        });
 
         return orders.size();
     }
