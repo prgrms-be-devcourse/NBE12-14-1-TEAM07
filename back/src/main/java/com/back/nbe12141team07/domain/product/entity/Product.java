@@ -17,6 +17,8 @@ public class Product extends BaseEntity {
 
     private int price;
 
+    private String imageUrl;
+
     public Product(String name, int price) {
         this.name = name;
         this.price = price;

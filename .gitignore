@@ -1,0 +1,30 @@
+# Next.js & Frontend
+front/.next/
+front/out/
+front/node_modules/
+front/.pnp
+front/.pnp.js
+front/coverage
+front/npm-debug.log*
+front/yarn-debug.log*
+front/yarn-error.log*
+
+# Spring Boot & Backend
+back/.gradle/
+back/build/
+back/out/
+back/*.iml
+back/.idea/
+back/db_dv.mv.db
+back/db_dv.trace.db
+
+# General / IDE
+.DS_Store
+*.pem
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

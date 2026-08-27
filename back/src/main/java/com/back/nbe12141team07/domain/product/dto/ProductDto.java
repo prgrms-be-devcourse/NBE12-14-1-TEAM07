@@ -9,7 +9,8 @@ public record ProductDto(
         LocalDateTime createDate,
         LocalDateTime modifyDate,
         String name,
-        int price
+        int price,
+        String imageUrl
 ) {
     public ProductDto(Product product) {
         this(
@@ -17,7 +18,8 @@ public record ProductDto(
                 product.getCreateDate(),
                 product.getModifyDate(),
                 product.getName(),
-                product.getPrice()
+                product.getPrice(),
+                product.getImageUrl()
         );
     }
-}
+}
