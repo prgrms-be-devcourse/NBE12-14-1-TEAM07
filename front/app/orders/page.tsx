@@ -6,7 +6,7 @@ import Logo from "@/components/Logo";
 import StatusPill from "@/components/StatusPill";
 import QtyStepper from "@/components/QtyStepper";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { fetchMyOrders } from "@/lib/api";
+import { fetchMyOrders, modifyOrder, cancelOrderDetail } from "@/lib/api";
 import { UserOrdersDto } from "@/lib/types";
 
 interface OrderItem {
@@ -67,6 +67,8 @@ function OrdersContent() {
   const [selectedId, setSelectedId] = useState<string>("");
   const [currentTab, setCurrentTab] = useState<string>("전체");
 
+  const [deletedDetailIds, setDeletedDetailIds] = useState<number[]>([]);
+
   const [editItems, setEditItems] = useState<OrderItem[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -119,13 +121,62 @@ function OrdersContent() {
 
   const editSubtotal = editItems.reduce((acc, it) => acc + it.price * it.qty, 0);
 
-  const handleSaveEdit = () => {
-    if (editItems.length === 0) {
-      alert("주문 상품은 최소 1개 이상이어야 합니다.");
-      return;
+const handleSaveEdit = async () => {
+  if (editItems.length === 0) {
+    alert("주문 상품은 최소 1개 이상이어야 합니다.");
+    return;
+  }
+
+  if (!selectedOrder) {
+    return;
+  }
+
+  const orderId = Number(selectedOrder.id);
+
+  const details = editItems.map((item) => ({
+    detailId: item.detailId,
+    productId: item.productId,
+    quantity: item.qty,
+  }));
+
+  try {
+    // 1. 상품 / 수량 수정
+    await modifyOrder(orderId, details);
+
+    // 2. X 누른 상세주문 취소
+    for (const detailId of deletedDetailIds) {
+      await cancelOrderDetail(orderId, detailId);
     }
-    alert("주문 수정 API가 아직 연결되지 않았습니다.");
-  };
+
+    // 3. 취소할 상세주문 목록 초기화
+    setDeletedDetailIds([]);
+
+    // 4. ⭐ 수정이 끝났으니 사용자 주문 다건 조회 다시 실행
+    const data = await fetchMyOrders(userEmail);
+    const rows = data.map(toOrderRecord);
+
+    // 5. 왼쪽 주문 목록 최신 데이터로 변경
+    setOrders(rows);
+
+    // 6. 방금 수정했던 주문을 다시 찾기
+    const updatedOrder = rows.find(
+      (order) => order.id === selectedOrder.id
+    );
+
+    // 7. 오른쪽 상세 화면도 최신 데이터로 변경
+    if (updatedOrder) {
+      setSelectedId(updatedOrder.id);
+      setEditItems(
+        updatedOrder.items.map((item) => ({ ...item }))
+      );
+    }
+
+    alert("주문이 수정되었습니다.");
+  } catch (error) {
+    console.error(error);
+    alert("주문 수정에 실패했습니다.");
+  }
+};
 
   const handleConfirmDelete = () => {
     if (!deleteTargetId) return;
@@ -307,7 +358,16 @@ function OrdersContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        setEditItems((prev) => prev.filter((_, i) => i !== idx));
+                        // X 누른 상세주문 ID를 기억
+                        setDeletedDetailIds((prev) => [
+                          ...prev,
+                          item.detailId,
+                        ]);
+
+                        // 화면에서는 제거
+                        setEditItems((prev) =>
+                          prev.filter((_, i) => i !== idx)
+                        );
                       }}
                       className="w-6 h-6 flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
                       title="항목 제거"

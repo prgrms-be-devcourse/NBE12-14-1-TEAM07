@@ -2,6 +2,52 @@ import { Product, OrdersDto, UserOrdersDto, RsData } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8080";
 
+export async function cancelOrderDetail(
+  orderId: number,
+  detailId: number
+) {
+  const response = await fetch(
+    `${API_BASE}/api/orders/${orderId}/details/${detailId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("상세 주문 취소 실패");
+  }
+
+  return response.json();
+}
+
+export async function modifyOrder(
+  orderId: number,
+  details: {
+    detailId: number;
+    productId: number;
+    quantity: number;
+  }[]
+) {
+  const response = await fetch(
+    `http://localhost:8080/api/orders/${orderId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        details: details,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("주문 수정 실패");
+  }
+
+  return response.json();
+}
+
 export async function fetchProducts(): Promise<Product[]> {
   try {
     const res = await fetch(`${API_BASE}/api/products`, {
