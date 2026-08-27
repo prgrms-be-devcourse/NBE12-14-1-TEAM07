@@ -1,5 +1,6 @@
 package com.back.nbe12141team07.domain.orders.dto;
 
+import com.back.nbe12141team07.domain.orders.entity.OrderDetailStatus;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 
 public record OrdersDetailDto(
@@ -7,7 +8,8 @@ public record OrdersDetailDto(
         int ordersId,
         int productId,
         int quantity,
-        int totalPrice
+        int totalPrice,
+        OrderDetailStatus status
 ) {
     public OrdersDetailDto(OrdersDetail ordersDetail) {
         this(
@@ -15,7 +17,8 @@ public record OrdersDetailDto(
                 ordersDetail.getOrders().getId(),
                 ordersDetail.getProduct().getId(),
                 ordersDetail.getQuantity(),
-                ordersDetail.getTotalPrice()
+                ordersDetail.getTotalPrice(),
+                ordersDetail.getStatus()
         );
     }
 }
