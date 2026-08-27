@@ -4,6 +4,7 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.global.exception.InvalidProductNameException;
 import com.back.nbe12141team07.global.exception.InvalidProductPriceException;
+import com.back.nbe12141team07.global.exception.ProductAlreadyExistException;
 import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +23,10 @@ public class ProductService {
 
     public Product createProduct(String name , int price) {
 
+        Optional<Product> op = productRepository.findByName(name);
+        if(op.isPresent()) {
+            throw new ProductAlreadyExistException(name);
+        }
 
         Product product = new Product(name, price);
 

@@ -52,12 +52,12 @@ public class OrdersService {
         return deliveryDate.atTime(CUTOFF);
     }
 
-    public List<Orders> getUserOrders(String email) {
-        LocalDate deliveryDate = resolveDeliveryDate(LocalDateTime.now());
-        return ordersRepository.findByUsersEmailAndCreateDateGreaterThanEqualAndCreateDateLessThan(email, startOf(deliveryDate), endOf(deliveryDate));
+    public List<Orders> getMyOrders(String email, LocalDate deliveryDate) {
+        return ordersRepository.findByUsersEmailAndCreateDateGreaterThanEqualAndCreateDateLessThan(
+                email, startOf(deliveryDate), endOf(deliveryDate));
     }
 
-    public List<Orders> getUsersOrders(LocalDate deliveryDate) {
+    public List<Orders> searchOrders(LocalDate deliveryDate) {
         return ordersRepository.findByCreateDateGreaterThanEqualAndCreateDateLessThan(
                 startOf(deliveryDate), endOf(deliveryDate));
     }
@@ -160,5 +160,4 @@ public class OrdersService {
 
         return orders.size();
     }
-
 }

@@ -71,10 +71,17 @@ public class OrdersController {
     // /{email}로 받았다가 단건 조회랑 Spring의 경로 충돌 문제로 /me로 변환 후
     // email을 RequestParam 조건으로 변경 (URL 방식 -> 쿼리 스트링 방식)
     @GetMapping("/me")
-    public RsData<List<UserOrdersDto>> getUserOrderList(
-            @RequestParam String email
+    public RsData<List<UserOrdersDto>> getMyOrders(
+            @RequestParam String email,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate deliveryDate
     ) {
-        List<Orders> orders = ordersService.getUserOrders(email);
+        LocalDate target = (deliveryDate != null)
+                ? deliveryDate
+                : ordersService.resolveDeliveryDate(LocalDateTime.now());
+
+        List<Orders> orders = ordersService.getMyOrders(email, target);
+
         return new RsData<> (
                 "200-1",
                 "사용자 권한으로 주문이 다건 조회되었습니다",
@@ -86,7 +93,7 @@ public class OrdersController {
 
     // 관리자 주문 다건 조회 -> 배송일 기준
     @GetMapping
-    public RsData<List<OrdersDto>> getUsersOrderList(
+    public RsData<List<OrdersDto>> searchOrders(
             // 관리자 이메일 검증을 위해 email 필요, deliveryDate 기준으로 조회
             @RequestParam String email,
             @RequestParam(required = false)
@@ -102,7 +109,7 @@ public class OrdersController {
                 ? deliveryDate
                 : ordersService.resolveDeliveryDate(LocalDateTime.now());
 
-        List<Orders> orders = ordersService.getUsersOrders(target);
+        List<Orders> orders = ordersService.searchOrders(target);
 
         return new RsData<>(
                 "200-1",

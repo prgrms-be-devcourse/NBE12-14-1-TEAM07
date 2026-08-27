@@ -42,9 +42,11 @@ public class ProductController {
                 new ProductDto(product)
         );
     }
+
     @GetMapping("/{id}")
     public ProductDto detail(@PathVariable int id) {
         Product product = productService.findById(id);
+
         return new ProductDto(product);
     }
 
