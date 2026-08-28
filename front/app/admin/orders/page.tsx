@@ -15,21 +15,31 @@ interface AdminOrderRow {
   amount: string;
   time: string;
   createDate: string;
-  status: "처리 가능" | "처리 완료";
+  status: "처리 가능" | "처리 완료" | "취소됨";
 }
 
 function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
-  const activeDetails = o.ordersDetails.filter((d) => d.status !== "CANCELED");
-  const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+  const isCanceled =
+    o.orderStatus === "CANCELED" ||
+    (o.ordersDetails.length > 0 &&
+      o.ordersDetails.every((d) => d.status === "CANCELED"));
+
+  const total = o.ordersDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+
+  const status: AdminOrderRow["status"] = isCanceled
+    ? "취소됨"
+    : o.orderStatus === "COMPLETED"
+    ? "처리 완료"
+    : "처리 가능";
 
   return {
     id: String(o.id),
     email: o.email,
-    items: `상품 ${activeDetails.length}건`,
+    items: `상품 ${o.ordersDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
-    time: o.createDate.split("T")[1].slice(0, 5),
+    time: o.createDate.split("T")[1]?.slice(0, 5) || "",
     createDate: o.createDate,
-    status: o.orderStatus === "COMPLETED" ? "처리 완료" : "처리 가능",
+    status,
   };
 }
 
@@ -72,6 +82,7 @@ export default function AdminOrdersPage() {
   const totalCount = orders.length;
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
+  const canceledCount = orders.filter((r) => r.status === "취소됨").length;
 
   const sortedOrders = [...orders].sort((a, b) => {
     const dateDiff = new Date(a.createDate).getTime() - new Date(b.createDate).getTime();
@@ -80,8 +91,8 @@ export default function AdminOrdersPage() {
     if (activeSort === "status") {
       const rank = (s: AdminOrderRow["status"]) =>
         statusOrder === "ready-first"
-          ? s === "처리 가능" ? 0 : 1
-          : s === "처리 완료" ? 0 : 1;
+          ? s === "처리 가능" ? 0 : s === "처리 완료" ? 1 : 2
+          : s === "처리 완료" ? 0 : s === "처리 가능" ? 1 : 2;
       const statusDiff = rank(a.status) - rank(b.status);
       return statusDiff !== 0 ? statusDiff : timeOrdered;
     }
@@ -177,10 +188,10 @@ export default function AdminOrdersPage() {
             </button>
           </div>
 
-          {/* 3 Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4.5">
+          {/* 4 Stat Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4.5">
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
-              <div className="text-[12px] text-faint font-medium">배송 건수</div>
+              <div className="text-[12px] text-faint font-medium">주문 건수</div>
               <div className="text-[23px] font-extrabold tracking-[-0.01em] text-ink mt-1">
                 {totalCount}건
               </div>
@@ -197,6 +208,12 @@ export default function AdminOrdersPage() {
                 {readyCount}건
               </div>
             </div>
+            <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
+              <div className="text-[12px] text-faint font-medium">취소 건수</div>
+              <div className="text-[23px] font-extrabold tracking-[-0.01em] text-danger mt-1">
+                {canceledCount}건
+              </div>
+            </div>
           </div>
 
           {/* Filter Chips */}
@@ -205,6 +222,7 @@ export default function AdminOrdersPage() {
               { label: "전체", count: totalCount },
               { label: "처리 완료", count: completedCount },
               { label: "처리 가능", count: readyCount },
+              { label: "취소됨", count: canceledCount },
             ].map(({ label, count }) => {
               const active = filter === label;
               return (
@@ -212,10 +230,11 @@ export default function AdminOrdersPage() {
                   key={label}
                   type="button"
                   onClick={() => setFilter(label)}
-                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${active
+                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                    active
                       ? "bg-ink text-white border border-ink"
                       : "bg-white text-muted border border-chip hover:bg-hover"
-                    }`}
+                  }`}
                 >
                   {label} {count}
                 </button>
