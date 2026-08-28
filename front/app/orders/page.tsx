@@ -22,7 +22,7 @@ interface OrderRecord {
   date: string;
   summary: string;
   amount: number;
-  status: "처리 대기" | "처리 완료";
+  status: "처리 대기" | "처리 완료" | "주문 취소";
   items: OrderItem[];
 }
 
@@ -46,16 +46,17 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
         ? `${items[0].productName} ×${items[0].qty}`
         : `${items[0].productName} 외 ${items.length - 1}건`;
 
-  const allCompleted =
-    o.ordersDetails.length > 0 &&
-    o.ordersDetails.every((d) => d.status === "COMPLETED");
-
   return {
     id: String(o.id),
     date: o.modifyDate.replace("T", " ").slice(0, 16),
     summary,
     amount,
-    status: allCompleted ? "처리 완료" : "처리 대기",
+    status:
+      o.orderStatus === "CANCELED"
+        ? "주문 취소"
+        : o.orderStatus === "COMPLETED"
+          ? "처리 완료"
+          : "처리 대기",
     items,
   };
 }
@@ -121,6 +122,7 @@ function OrdersContent() {
     전체: orders.length,
     "처리 대기": orders.filter((o) => o.status === "처리 대기").length,
     "처리 완료": orders.filter((o) => o.status === "처리 완료").length,
+    "주문 취소": orders.filter((o) => o.status === "주문 취소").length,
   };
 
   const editSubtotal = editItems.reduce((acc, it) => acc + it.price * it.qty, 0);
@@ -188,23 +190,24 @@ const handleSaveEdit = async () => {
     try {
       await deleteOrder(Number(deleteTargetId));
 
-      // 삭제 후 다건 조회를 다시 실행해 서버 상태와 맞춤
+      // 주문 취소 후 다건 조회를 다시 실행해 서버 상태와 맞춤
       const data = await fetchMyOrders(userEmail);
       const rows = data.map(toOrderRecord);
       setOrders(rows);
 
-      // 삭제한 주문이 선택 상태였다면 첫 번째 주문으로 이동
-      if (selectedId === deleteTargetId) {
-        if (rows.length > 0) {
-          setSelectedId(rows[0].id);
-          setEditItems(rows[0].items.map((it) => ({ ...it })));
-        } else {
-          setSelectedId("");
-          setEditItems([]);
+     // 삭제한 주문이 선택 상태였다면 첫 번째 주문으로 이동
+        const canceledOrder = rows.find(
+          (order) => order.id === deleteTargetId
+        );
+
+        if (canceledOrder) {
+          setSelectedId(canceledOrder.id);
+          setEditItems(
+            canceledOrder.items.map((item) => ({ ...item }))
+          );
         }
-      }
     } catch {
-      alert("주문 삭제에 실패했습니다.");
+      alert("주문 취소에 실패했습니다.");
     } finally {
       setDeleteModalOpen(false);
       setDeleteTargetId(null);
@@ -237,7 +240,7 @@ const handleSaveEdit = async () => {
           </p>
 
           <div className="flex gap-2 mt-4.5">
-            {(["전체", "처리 대기", "처리 완료"] as const).map((tab) => {
+            {(["전체", "처리 대기", "처리 완료", "주문 취소"] as const).map((tab) => {
               const active = currentTab === tab;
               return (
                 <button
@@ -295,7 +298,7 @@ const handleSaveEdit = async () => {
                       {order.amount.toLocaleString("ko-KR")}원
                     </div>
 
-                    {isSelected && order.status !== "처리 완료" && (
+                    {isSelected && order.status === "처리 대기" && (
                       <div className="flex mt-3.5 pt-2 border-t border-line2">
                         <button
                           type="button"
@@ -321,9 +324,9 @@ const handleSaveEdit = async () => {
             <div className="w-full lg:w-[420px] flex-none bg-white border border-line rounded-[12px] p-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold tracking-[-0.01em] text-[16px] text-ink">
-                  {selectedOrder.status === "처리 완료"
-                  ? "주문 상세"
-                  : "주문 상세 · 수정"}
+                  {selectedOrder.status === "처리 대기"
+                    ? "주문 상세 · 수정"
+                    : "주문 상세"}
                 </span>
                 <StatusPill status={selectedOrder.status} />
               </div>
@@ -366,9 +369,9 @@ const handleSaveEdit = async () => {
                     <QtyStepper
                       quantity={item.qty}
                       min={1}
-                      disabled={selectedOrder.status === "처리 완료"}
+                      disabled={selectedOrder.status !== "처리 대기"}
                       onIncrease={() => {
-                        if (selectedOrder.status === "처리 완료") return;
+                        if (selectedOrder.status !== "처리 대기") return;
 
                         setEditItems((prev) =>
                           prev.map((x, i) =>
@@ -377,7 +380,7 @@ const handleSaveEdit = async () => {
                         );
                       }}
                       onDecrease={() => {
-                        if (selectedOrder.status === "처리 완료") return;
+                        if (selectedOrder.status !== "처리 대기") return;
 
                         setEditItems((prev) =>
                           prev.map((x, i) =>
@@ -391,7 +394,7 @@ const handleSaveEdit = async () => {
                       {(item.price * item.qty).toLocaleString("ko-KR")}원
                     </div>
 
-                    {selectedOrder.status !== "처리 완료" && (
+                    {selectedOrder.status === "처리 대기" && (
                       <button 
                         type="button"
                         onClick={() => {
@@ -417,7 +420,7 @@ const handleSaveEdit = async () => {
               </div>
 
               {/* Buttons */}
-              {selectedOrder.status !== "처리 완료" && (
+              {selectedOrder.status === "처리 대기" && (
                 <div className="flex gap-2 mt-5">
                   <button
                     type="button"
@@ -443,14 +446,14 @@ const handleSaveEdit = async () => {
 
       {/* Delete Confirmation Modal */}
       <ConfirmDialog
-        isOpen={deleteModalOpen}
-        title="주문을 삭제할까요?"
-        description={`${deleteTargetId} · 삭제한 주문은 되돌릴 수 없어요.`}
-        confirmText="삭제하기"
-        cancelText="취소"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteModalOpen(false)}
-      />
+          isOpen={deleteModalOpen}
+          title="주문을 취소할까요?"
+          description={`${deleteTargetId} · 취소한 주문은 되돌릴 수 없어요.`}
+          confirmText="주문 취소"
+          cancelText="취소"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteModalOpen(false)}
+        />
     </div>
   );
 }
