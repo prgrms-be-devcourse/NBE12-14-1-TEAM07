@@ -19,9 +19,9 @@ public interface OrdersRepository extends JpaRepository<Orders, Integer> {
     List<Orders> findByUsersEmailAndCreateDateGreaterThanEqualAndCreateDateLessThan(String email, LocalDateTime start, LocalDateTime end);
     List<Orders> findByCreateDateGreaterThanEqualAndCreateDateLessThan(LocalDateTime start, LocalDateTime end);
 
-    List<Orders> findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatus(
+    List<Orders> findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatusIn(
             LocalDateTime start,
             LocalDateTime end,
-            OrderStatus status
+            List<OrderStatus> statuses
     );
 }

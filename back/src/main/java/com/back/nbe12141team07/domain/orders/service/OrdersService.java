@@ -71,9 +71,11 @@ public class OrdersService {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
-        if (order.getStatus() == COMPLETED) {
+        if (order.getStatus() == COMPLETED || order.getStatus() == CANCELED) {
             throw new InvalidOrderStatusException();
         }
+
+        boolean modified = false;
 
         for(OrderDetailModifyRequest request : reqbody.details()) {
             OrdersDetail detail = order.getOrdersDetails()
@@ -85,7 +87,13 @@ public class OrdersService {
             Product product = productRepository.findById(request.productId())
                     .orElseThrow(() -> new ProductNotFoundException(request.productId()));
 
-            detail.updateOrder(product, request.quantity());
+            if (detail.updateOrder(product, request.quantity())) {
+                modified = true;
+            }
+        }
+
+        if (modified) {
+            order.modify();
         }
 
         return order.getOrdersDetails();
@@ -134,7 +142,7 @@ public class OrdersService {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
-        if (order.getStatus() == COMPLETED) {
+        if (order.getStatus() == COMPLETED || order.getStatus() == CANCELED) {
             throw new InvalidOrderStatusException();
         }
 
@@ -144,7 +152,9 @@ public class OrdersService {
                 .findFirst()
                 .orElseThrow(() -> new OrdersDetailNotFoundException(orderId, detailId));
 
-        order.getOrdersDetails().remove(detail);
+
+        detail.detailCancel();
+        order.modify();
     }
 
     public Orders findById(int id) {
@@ -153,32 +163,39 @@ public class OrdersService {
     }
 
     // 주문 취소 (하드 삭제 대신 status를 CANCELED로 변경 - 상세 항목도 함께 취소 처리)
-    @Transactional
-    public void deleteOrders(int id) {
-        Orders orders = findById(id);
-        orders.cancel();
-        orders.getOrdersDetails().forEach(OrdersDetail::cancel);
+        @Transactional
+        public void deleteOrders(int id) {
+            Orders orders = findById(id);
 
-        if (orders.getStatus() == COMPLETED) {
-            throw new InvalidOrderStatusException();
+            if (orders.getStatus() == COMPLETED || orders.getStatus() == CANCELED) {
+                throw new InvalidOrderStatusException();
+            }
+
+            orders.cancel();
+            orders.getOrdersDetails().forEach(detail -> {
+                if (detail.getStatus() != OrderDetailStatus.DETAIL_CANCELED) {
+                    detail.cancel();
+                }
+            });
         }
 
-
-        ordersRepository.delete(orders);
-    }
-
+    @Transactional
     public int completeOrders(LocalDate date) {
         LocalDateTime start = date.minusDays(1).atTime(CUTOFF_HOUR, 0); // 전날 14:00:00
         LocalDateTime end = date.atTime(CUTOFF_HOUR, 0); // 당일 14:00:00
 
         List<Orders> orders = ordersRepository
-                .findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatus(start, end, OrderStatus.ORDERED);
+                .findByCreateDateGreaterThanEqualAndCreateDateLessThanAndStatusIn(
+                        start,
+                        end,
+                        List.of(OrderStatus.ORDERED, OrderStatus.MODIFIED)
+                );
 
 
         orders.forEach(order -> {
             order.complete();
             order.getOrdersDetails().forEach(detail -> {
-                if(detail.getStatus() != OrderDetailStatus.CANCELED) {
+                if(detail.getStatus() != OrderDetailStatus.DETAIL_CANCELED) {
                     detail.complete();
                 }
             });

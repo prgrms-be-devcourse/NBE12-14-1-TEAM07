@@ -49,4 +49,8 @@ public class Orders extends BaseEntity {
     public void cancel() {
         this.status = OrderStatus.CANCELED;
     }
+
+    public void modify() {
+        this.status = OrderStatus.MODIFIED;
+    }
 }
