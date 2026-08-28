@@ -13,11 +13,7 @@ import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
-import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
-import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
-import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import com.back.nbe12141team07.global.exception.*;
-import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,7 +62,7 @@ public class OrdersService {
     }
 
     @Transactional
-    public List<OrdersDetail> modifyOrders(int orderId, OrderModifyRequest reqbody) {
+    public List<OrdersDetail> modifyOrder(int orderId, OrderModifyRequest reqBody) {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
@@ -74,7 +70,7 @@ public class OrdersService {
             throw new InvalidOrderStatusException();
         }
 
-        for(OrderDetailModifyRequest request : reqbody.details()) {
+        for(OrderDetailModifyRequest request : reqBody.details()) {
             OrdersDetail detail = order.getOrdersDetails()
                     .stream()
                     .filter(d -> d.getId() == request.detailId())
@@ -91,7 +87,7 @@ public class OrdersService {
 
     }
 
-    public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
+    public Orders createOrder(String email, List<OrdersDetailRequest> ordersDetails) {
 
         // 이메일과 권한("users")을 넣어 users 생성
         Users users = usersRepository.findByEmail(email)
@@ -153,7 +149,7 @@ public class OrdersService {
 
     // 주문 취소 (하드 삭제 대신 status를 CANCELED로 변경 - 상세 항목도 함께 취소 처리)
     @Transactional
-    public void deleteOrders(int id) {
+    public void cancelOrder(int id) {
         Orders orders = findById(id);
 
         if (orders.getStatus() == COMPLETED) {

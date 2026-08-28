@@ -1,5 +1,5 @@
 interface StatusPillProps {
-  status: "처리 대기" | "처리 완료" | "처리 가능" | "처리 불가" | "판매중" | "숨김" | string;
+  status: "처리 대기" | "처리 완료" | "처리 가능" | "처리 불가" | "판매중" | "숨김" | "취소됨" | "주문 취소" | string;
 }
 
 export default function StatusPill({ status }: StatusPillProps) {
@@ -21,8 +21,12 @@ export default function StatusPill({ status }: StatusPillProps) {
       styleClasses = "bg-warn-bg text-warn-fg";
       break;
     case "숨김":
-    case "CANCELED":
       styleClasses = "bg-chipbg text-faint";
+      break;
+    case "CANCELED":
+    case "취소됨":
+    case "주문 취소":
+      styleClasses = "bg-danger-bg text-danger";
       break;
     case "처리 대기":
     case "처리 가능":

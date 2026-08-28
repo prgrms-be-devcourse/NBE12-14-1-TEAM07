@@ -7,23 +7,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@OpenAPIDefinition(info = @Info(title = "API 서버", version = "beta", description = "API 서버 문서입니다."))
+@OpenAPIDefinition(info = @Info(title = "Grids&Circles Server", version = "beta", description = "Grids&Circles API 문서입니다."))
 public class SpringDoc {
 
     @Bean
-    public GroupedOpenApi groupController() {
+    public GroupedOpenApi groupApiAll() {
         return GroupedOpenApi.builder()
-                .group("home")
-                .pathsToExclude("/api/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi groupApiV1() {
-        return GroupedOpenApi.builder()
-                .group("apiV1")
+                .group("api-all")
                 .pathsToMatch("/api/**")
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi groupOrders() {
+        return GroupedOpenApi.builder()
+                .group("orders")
+                .pathsToMatch("/api/orders/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi groupProducts() {
+        return GroupedOpenApi.builder()
+                .group("products")
+                .pathsToMatch("/api/products/**")
+                .build();
+    }
 }

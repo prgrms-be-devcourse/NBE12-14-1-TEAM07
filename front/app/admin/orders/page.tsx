@@ -15,30 +15,39 @@ interface AdminOrderRow {
   amount: string;
   time: string;
   createDate: string;
-  status: "처리 가능" | "수정됨" | "처리 완료";
+  status: "처리 가능" | "수정됨" | "처리 완료" | "취소됨";
 }
 
 function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
+  const isCanceled =
+    o.orderStatus === "CANCELED" ||
+    (o.ordersDetails.length > 0 &&
+      o.ordersDetails.every((d) => d.status === "CANCELED"));
+
   const activeDetails = o.ordersDetails.filter(
     (d) => d.status !== "CANCELED" && d.status !== "DETAIL_CANCELED"
   );
+
   const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+
+  const status: AdminOrderRow["status"] = isCanceled
+    ? "취소됨"
+    : o.orderStatus === "COMPLETED"
+      ? "처리 완료"
+      : o.orderStatus === "MODIFIED"
+        ? "수정됨"
+        : "처리 가능";
 
   return {
     id: String(o.id),
     email: o.email,
     items: `상품 ${activeDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
-    time: o.createDate.split("T")[1].slice(0, 5),
+    time: o.createDate.split("T")[1]?.slice(0, 5) || "",
     createDate: o.createDate,
-    status:
-    o.orderStatus === "COMPLETED"
-      ? "처리 완료"
-      : o.orderStatus === "MODIFIED"
-        ? "수정됨"
-        : "처리 가능",
+    status,
   };
-}
+  }
 
 function todayString(): string {
   const now = new Date();
@@ -80,6 +89,7 @@ export default function AdminOrdersPage() {
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
   const modifiedCount = orders.filter((r) => r.status === "수정됨").length;
+  const canceledCount = orders.filter((r) => r.status === "취소됨").length;
 
   const sortedOrders = [...orders].sort((a, b) => {
     const dateDiff = new Date(a.createDate).getTime() - new Date(b.createDate).getTime();
@@ -90,12 +100,14 @@ export default function AdminOrdersPage() {
         if (statusOrder === "ready-first") {
           if (s === "처리 가능") return 0;
           if (s === "수정됨") return 1;
-          return 2;
+          if (s === "처리 완료") return 2;
+          return 3; // 취소됨
         }
 
         if (s === "처리 완료") return 0;
-        if (s === "수정됨") return 1;
-        return 2;
+        if (s === "처리 가능") return 1;
+        if (s === "수정됨") return 2;
+        return 3; // 취소됨
       };
 
       const statusDiff = rank(a.status) - rank(b.status);
@@ -198,10 +210,10 @@ export default function AdminOrdersPage() {
             </button>
           </div>
 
-          {/* 3 Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4.5">
+          {/* 4 Stat Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4.5">
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
-              <div className="text-[12px] text-faint font-medium">배송 건수</div>
+              <div className="text-[12px] text-faint font-medium">주문 건수</div>
               <div className="text-[23px] font-extrabold tracking-[-0.01em] text-ink mt-1">
                 {totalCount}건
               </div>
@@ -218,6 +230,12 @@ export default function AdminOrdersPage() {
                 {readyCount + modifiedCount}건
               </div>
             </div>
+            <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
+              <div className="text-[12px] text-faint font-medium">취소 건수</div>
+              <div className="text-[23px] font-extrabold tracking-[-0.01em] text-danger mt-1">
+                {canceledCount}건
+              </div>
+            </div>
           </div>
 
           {/* Filter Chips */}
@@ -225,8 +243,9 @@ export default function AdminOrdersPage() {
             {[
               { label: "전체", count: totalCount },
               { label: "처리 완료", count: completedCount },
-              { label: "처리 가능", count: readyCount + modifiedCount},
+              { label: "처리 가능", count: readyCount + modifiedCount },
               { label: "수정됨", count: modifiedCount },
+              { label: "취소됨", count: canceledCount },
             ].map(({ label, count }) => {
               const active = filter === label;
               return (
@@ -234,10 +253,11 @@ export default function AdminOrdersPage() {
                   key={label}
                   type="button"
                   onClick={() => setFilter(label)}
-                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${active
+                  className={`text-[12.5px] font-semibold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
+                    active
                       ? "bg-ink text-white border border-ink"
                       : "bg-white text-muted border border-chip hover:bg-hover"
-                    }`}
+                  }`}
                 >
                   {label} {count}
                 </button>
