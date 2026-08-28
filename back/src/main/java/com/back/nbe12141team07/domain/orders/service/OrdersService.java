@@ -13,11 +13,8 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
-import com.back.nbe12141team07.global.exception.InvalidOrdersQuantityException;
-import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
-import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
+import com.back.nbe12141team07.global.exception.*;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
-import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +23,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
+import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.CANCELED;
+import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.COMPLETED;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +67,10 @@ public class OrdersService {
     public List<OrdersDetail> modifyOrders(int orderId, OrderModifyRequest reqbody) {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
+
+        if (order.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
 
         for(OrderDetailModifyRequest request : reqbody.details()) {
             OrdersDetail detail = order.getOrdersDetails()
@@ -127,6 +131,10 @@ public class OrdersService {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
+        if (order.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
+
         OrdersDetail detail = order.getOrdersDetails()
                 .stream()
                 .filter(d -> d.getId() == detailId)
@@ -146,6 +154,11 @@ public class OrdersService {
     // Orders를 삭제하면 OrdersDetail도 같이 삭제됨
     public void deleteOrders(int id) {
         Orders orders = findById(id);
+
+        if (orders.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
+
 
         ordersRepository.delete(orders);
     }
