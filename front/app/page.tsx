@@ -132,6 +132,7 @@ export default function Home() {
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onRemoveItem={handleRemoveItem}
+            onClearCart={() => setCart([])}
           />
         </div>
       </div>

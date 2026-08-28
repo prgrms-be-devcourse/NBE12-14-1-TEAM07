@@ -70,6 +70,23 @@ export async function fetchProducts(): Promise<Product[]> {
   }
 }
 
+export interface CreateOrderRequest {
+  email: string;
+  ordersDetails: {
+    productId: number;
+    quantity: number;
+  }[];
+}
+export async function createOrder(data: CreateOrderRequest) {
+  const response = await fetch("http://localhost:8080/api/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("주문 처리에 실패했습니다.");
+  }
+  return response.json();
 export async function fetchOrders(email: string, deliveryDate? : string): Promise<OrdersDto[]> {
   try {
 
