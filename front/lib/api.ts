@@ -168,6 +168,7 @@ export async function fetchMyOrders(email : string, deliveryDate? : string): Pro
     );
     throw error;
   }
+}
 
 export async function deleteOrder(id: number): Promise<void> {
   try {

@@ -306,7 +306,7 @@ const handleSaveEdit = async () => {
                           }}
                           className="w-full h-9 flex items-center justify-center border-[1.5px] border-danger text-danger rounded-lg text-[13px] font-semibold hover:bg-danger-bg transition-colors cursor-pointer"
                         >
-                          삭제
+                          주문 취소
                         </button>
                       </div>
                     )}
@@ -421,7 +421,7 @@ const handleSaveEdit = async () => {
                   onClick={() => handleSelectOrder(selectedOrder)}
                   className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
                 >
-                  취소
+                  되돌리기
                 </button>
               </div>
             </div>
