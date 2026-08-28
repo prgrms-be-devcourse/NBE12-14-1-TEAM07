@@ -298,7 +298,9 @@ const handleSaveEdit = async () => {
             <div className="w-full lg:w-[420px] flex-none bg-white border border-line rounded-[12px] p-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold tracking-[-0.01em] text-[16px] text-ink">
-                  주문 상세 · 수정
+                  {selectedOrder.status === "처리 완료"
+                  ? "주문 상세"
+                  : "주문 상세 · 수정"}
                 </span>
                 <StatusPill status={selectedOrder.status} />
               </div>
