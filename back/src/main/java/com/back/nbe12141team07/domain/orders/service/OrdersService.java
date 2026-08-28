@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.CANCELED;
 import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.COMPLETED;
 
 @Service
@@ -156,15 +155,13 @@ public class OrdersService {
     @Transactional
     public void deleteOrders(int id) {
         Orders orders = findById(id);
-        orders.cancel();
-        orders.getOrdersDetails().forEach(OrdersDetail::cancel);
 
         if (orders.getStatus() == COMPLETED) {
             throw new InvalidOrderStatusException();
         }
 
-
-        ordersRepository.delete(orders);
+        orders.cancel();
+        orders.getOrdersDetails().forEach(OrdersDetail::cancel);
     }
 
     public int completeOrders(LocalDate date) {
