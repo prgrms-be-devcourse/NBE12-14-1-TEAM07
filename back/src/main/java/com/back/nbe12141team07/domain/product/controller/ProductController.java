@@ -5,6 +5,7 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -19,6 +20,7 @@ import java.util.List;
 
 
 @RestController
+@Tag(name = "Product API")
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {

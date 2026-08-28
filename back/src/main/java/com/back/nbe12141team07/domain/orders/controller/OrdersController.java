@@ -7,6 +7,7 @@ import com.back.nbe12141team07.domain.orders.service.OrdersService;
 import com.back.nbe12141team07.global.exception.BusinessException;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
+@Tag(name = "Orders API", description = "주문 CRUD API")
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrdersController {
@@ -66,7 +68,7 @@ public class OrdersController {
     @Operation(summary = "주문 단건 조회")
     @Transactional
     public OrdersDto detail(@PathVariable int id) {
-        Orders orders = ordersService.findById(id);
+        Orders orders = ordersService.getOrdersById(id);
 
         return new OrdersDto(orders);
     }
@@ -124,13 +126,13 @@ public class OrdersController {
         );
     }
 
-    @PatchMapping("/{orderId}")
+    @PatchMapping("/{id}")
     @Operation(summary = "주문 수정")
     public RsData<List<OrdersDetailDto>> modifyOrder(
-            @PathVariable int orderId,
+            @PathVariable int id,
             @RequestBody OrderModifyRequest modifyReqBody
             ) {
-        List<OrdersDetail> orderDetail = ordersService.modifyOrders(orderId, modifyReqBody);
+        List<OrdersDetail> orderDetail = ordersService.modifyOrders(id, modifyReqBody);
 
         List<OrdersDetailDto> ordersDetailDtoList = orderDetail.stream()
                 .map(d -> new OrdersDetailDto(d))
