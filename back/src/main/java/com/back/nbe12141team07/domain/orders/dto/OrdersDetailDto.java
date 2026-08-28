@@ -7,6 +7,7 @@ public record OrdersDetailDto(
         int id,
         int ordersId,
         int productId,
+        String productName,
         int quantity,
         int totalPrice,
         OrderDetailStatus status
@@ -16,6 +17,7 @@ public record OrdersDetailDto(
                 ordersDetail.getId(),
                 ordersDetail.getOrders().getId(),
                 ordersDetail.getProduct().getId(),
+                ordersDetail.getProduct().getName(),
                 ordersDetail.getQuantity(),
                 ordersDetail.getTotalPrice(),
                 ordersDetail.getStatus()
