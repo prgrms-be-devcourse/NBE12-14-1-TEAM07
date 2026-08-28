@@ -1,22 +1,20 @@
 package com.back.nbe12141team07.domain.orders.service;
 
-import com.back.nbe12141team07.domain.orders.controller.OrdersController;
 import com.back.nbe12141team07.domain.orders.dto.OrderDetailModifyRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrderModifyRequest;
 import com.back.nbe12141team07.domain.orders.dto.OrdersDetailRequest;
+import com.back.nbe12141team07.domain.orders.entity.OrderDetailStatus;
 import com.back.nbe12141team07.domain.orders.entity.OrderStatus;
 import com.back.nbe12141team07.domain.orders.entity.Orders;
 import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
-import com.back.nbe12141team07.domain.orders.entity.OrderDetailStatus;
 import com.back.nbe12141team07.domain.orders.repository.OrdersRepository;
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
-import com.back.nbe12141team07.global.exception.InvalidOrdersQuantityException;
+import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
 import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
-import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -141,13 +139,12 @@ public class OrdersService {
                 .orElseThrow(() -> new OrdersNotFoundException(id));
     }
 
-    //주문 삭제
-    //Orders에 cascade = ALL, orphanRemoval = true이 걸려있기 때문에,
-    // Orders를 삭제하면 OrdersDetail도 같이 삭제됨
+    // 주문 취소 (하드 삭제 대신 status를 CANCELED로 변경 - 상세 항목도 함께 취소 처리)
+    @Transactional
     public void deleteOrders(int id) {
         Orders orders = findById(id);
-
-        ordersRepository.delete(orders);
+        orders.cancel();
+        orders.getOrdersDetails().forEach(OrdersDetail::cancel);
     }
 
     public int completeOrders(LocalDate date) {
