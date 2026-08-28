@@ -4,6 +4,7 @@ import com.back.nbe12141team07.domain.product.dto.ProductDto;
 import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -32,6 +33,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @Operation(summary = "상품 등록")
     @Transactional
     public RsData<ProductDto> save(@Valid @RequestBody ProductSaveReqBody reqBody) {
         Product product = productService.createProduct(reqBody.name, reqBody.price);
@@ -44,6 +46,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "상품 단건 조회")
     public ProductDto detail(@PathVariable int id) {
         Product product = productService.findById(id);
 
@@ -51,6 +54,7 @@ public class ProductController {
     }
 
     @GetMapping
+    @Operation(summary = "상품 다건 조회")
     @Transactional
     public List<ProductDto> list() {
         List<Product> productList = productService.findAll();
@@ -73,6 +77,7 @@ public class ProductController {
     }
 
     @PatchMapping("{id}")
+    @Operation(summary = "상품 수정")
     @Transactional
     public RsData<ProductDto> modifyProduct(
         @PathVariable int id,
@@ -90,6 +95,7 @@ public class ProductController {
 
     // DELETE /api/products/{id} - 상품 삭제
     @DeleteMapping("/{id}")
+    @Operation(summary = "상품 삭제")
     @Transactional
     // 반환할 데이터가 없으므로 Void로 지정
     public RsData<Void> delete(@PathVariable int id) {
