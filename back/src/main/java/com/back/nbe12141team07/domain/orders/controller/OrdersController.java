@@ -143,7 +143,7 @@ public class OrdersController {
         );
     }
 
-    // DELETE /api/orders/{id} : 주문 삭제
+    // DELETE /api/orders/{id} : 주문 취소
     @DeleteMapping("/{id}")
     @Operation(summary = "주문 삭제")
     @Transactional
@@ -151,7 +151,7 @@ public class OrdersController {
         ordersService.deleteOrders(id);
         return new RsData<>(
                 "200-1",
-                "%d번 주문이 삭제되었습니다.".formatted(id)
+                "%d번 주문이 취소되었습니다.".formatted(id)
         );
     }
 
