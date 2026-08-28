@@ -16,6 +16,8 @@ import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
 import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
 import com.back.nbe12141team07.global.exception.ProductNotFoundException;
+import com.back.nbe12141team07.global.exception.*;
+import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
+import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.CANCELED;
+import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.COMPLETED;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +70,10 @@ public class OrdersService {
     public List<OrdersDetail> modifyOrders(int orderId, OrderModifyRequest reqbody) {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
+
+        if (order.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
 
         for(OrderDetailModifyRequest request : reqbody.details()) {
             OrdersDetail detail = order.getOrdersDetails()
@@ -125,6 +134,10 @@ public class OrdersService {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
+        if (order.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
+
         OrdersDetail detail = order.getOrdersDetails()
                 .stream()
                 .filter(d -> d.getId() == detailId)
@@ -145,6 +158,13 @@ public class OrdersService {
         Orders orders = findById(id);
         orders.cancel();
         orders.getOrdersDetails().forEach(OrdersDetail::cancel);
+
+        if (orders.getStatus() == COMPLETED) {
+            throw new InvalidOrderStatusException();
+        }
+
+
+        ordersRepository.delete(orders);
     }
 
     public int completeOrders(LocalDate date) {
