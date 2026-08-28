@@ -41,6 +41,7 @@ public class OrdersDetail extends BaseEntity {
     public void cancel() {
         this.status = OrderDetailStatus.CANCELED;
     }
+
     public void complete() {
         this.status = OrderDetailStatus.COMPLETED;
     }
