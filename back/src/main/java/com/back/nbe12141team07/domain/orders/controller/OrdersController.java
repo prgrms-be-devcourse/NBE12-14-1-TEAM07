@@ -6,6 +6,7 @@ import com.back.nbe12141team07.domain.orders.entity.OrdersDetail;
 import com.back.nbe12141team07.domain.orders.service.OrdersService;
 import com.back.nbe12141team07.global.exception.BusinessException;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class OrdersController {
     private final OrdersService ordersService;
 
     @DeleteMapping("/{orderId}/details/{detailId}")
+    @Operation(summary = "주문 상세 취소")
     public RsData<Void> cancelDetail(
             @PathVariable int orderId,
             @PathVariable int detailId
@@ -48,6 +50,7 @@ public class OrdersController {
     }
 
     @PostMapping
+    @Operation(summary = "주문 등록")
     @Transactional
     public RsData<OrdersDto> save(@Valid @RequestBody OrdersSaveReqBody reqBody) {
         Orders orders = ordersService.createOrders(reqBody.email(), reqBody.ordersDetails);
@@ -60,6 +63,7 @@ public class OrdersController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "주문 단건 조회")
     @Transactional
     public OrdersDto detail(@PathVariable int id) {
         Orders orders = ordersService.findById(id);
@@ -71,6 +75,7 @@ public class OrdersController {
     // /{email}로 받았다가 단건 조회랑 Spring의 경로 충돌 문제로 /me로 변환 후
     // email을 RequestParam 조건으로 변경 (URL 방식 -> 쿼리 스트링 방식)
     @GetMapping("/me")
+    @Operation(summary = "사용자 주문 다건 조회")
     public RsData<List<UserOrdersDto>> getMyOrders(
             @RequestParam String email,
             @RequestParam(required = false)
@@ -93,6 +98,7 @@ public class OrdersController {
 
     // 관리자 주문 다건 조회 -> 배송일 기준
     @GetMapping
+    @Operation(summary = "관리자 주문 다건 조회")
     public RsData<List<OrdersDto>> searchOrders(
             // 관리자 이메일 검증을 위해 email 필요, deliveryDate 기준으로 조회
             @RequestParam String email,
@@ -119,6 +125,7 @@ public class OrdersController {
     }
 
     @PatchMapping("/{orderId}")
+    @Operation(summary = "주문 수정")
     public RsData<List<OrdersDetailDto>> modifyOrder(
             @PathVariable int orderId,
             @RequestBody OrderModifyRequest modifyReqBody
@@ -138,6 +145,7 @@ public class OrdersController {
 
     // DELETE /api/orders/{id} : 주문 삭제
     @DeleteMapping("/{id}")
+    @Operation(summary = "주문 삭제")
     @Transactional
     public RsData<Void> delete(@PathVariable int id) {
         ordersService.deleteOrders(id);
@@ -148,6 +156,7 @@ public class OrdersController {
     }
 
     @PostMapping("/{date}/complete")
+    @Operation(summary = "주문 처리")
     @Transactional
     public RsData<Integer> complete(
             // 문자열 자동으로 LocalDtae객체로 변환해서 파라미터 넣기.
