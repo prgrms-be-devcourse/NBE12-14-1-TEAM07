@@ -168,4 +168,22 @@ export async function fetchMyOrders(email : string, deliveryDate? : string): Pro
     );
     throw error;
   }
+
+export async function deleteOrder(id: number): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/api/orders/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`주문 삭제 실패 (${res.status})`);
+    }
+  } catch (error) {
+    console.error("서버에서 주문을 삭제하는데 실패했습니다.", error);
+    throw error;
+  }
 }
+
