@@ -7,7 +7,8 @@ import StatusPill from "@/components/StatusPill";
 import QtyStepper from "@/components/QtyStepper";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { fetchMyOrders, deleteOrder, modifyOrder, cancelOrderDetail } from "@/lib/api";
-import { UserOrdersDto } from "@/lib/types";
+import { UserOrdersDto, OrderDetailStatus } from "@/lib/types";
+
 
 interface OrderItem {
   detailId: number;
@@ -15,6 +16,7 @@ interface OrderItem {
   productName: string;
   qty: number;
   price: number;
+  status: OrderDetailStatus;
 }
 
 interface OrderRecord {
@@ -22,29 +24,41 @@ interface OrderRecord {
   date: string;
   summary: string;
   amount: number;
-  status: "처리 대기" | "처리 완료" | "주문 취소";
+  status: "처리 대기" | "수정됨" | "처리 완료" | "주문 취소";
   items: OrderItem[];
 }
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
 
 function toOrderRecord(o: UserOrdersDto): OrderRecord {
+  // 백엔드에서 받은 상세 주문들을 프론트에서 사용할 형태로 변경
   const items: OrderItem[] = o.ordersDetails.map((d) => ({
     detailId: d.id,
     productId: d.productId,
     productName: d.productName,
     qty: d.quantity,
     price: d.quantity > 0 ? d.totalPrice / d.quantity : 0,
+    status: d.status,
   }));
 
-  const amount = o.ordersDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+  // 상세 취소된 상품은 금액/요약 계산에서 제외
+  const activeItems = items.filter(
+    (item) => item.status !== "DETAIL_CANCELED"
+  );
 
+  // 상세 취소되지 않은 상품들만 합계 계산
+  const amount = activeItems.reduce(
+    (sum, item) => sum + item.price * item.qty,
+    0
+  );
+
+  // 왼쪽 주문 목록에 표시할 상품 요약
   const summary =
-    items.length === 0
+    activeItems.length === 0
       ? "주문 상품 없음"
-      : items.length === 1
-        ? `${items[0].productName} ×${items[0].qty}`
-        : `${items[0].productName} 외 ${items.length - 1}건`;
+      : activeItems.length === 1
+        ? `${activeItems[0].productName} ×${activeItems[0].qty}`
+        : `${activeItems[0].productName} 외 ${activeItems.length - 1}건`;
 
   return {
     id: String(o.id),
@@ -56,7 +70,9 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
         ? "주문 취소"
         : o.orderStatus === "COMPLETED"
           ? "처리 완료"
-          : "처리 대기",
+          : o.orderStatus === "MODIFIED"
+            ? "수정됨"
+            : "처리 대기",
     items,
   };
 }
@@ -108,9 +124,14 @@ function OrdersContent() {
 
   const selectedOrder = orders.find((o) => o.id === selectedId);
 
+  const isEditableOrder =
+  selectedOrder?.status === "처리 대기" ||
+  selectedOrder?.status === "수정됨";
+
   const handleSelectOrder = (order: OrderRecord) => {
-    setSelectedId(order.id);
-    setEditItems(order.items.map((it) => ({ ...it })));
+  setSelectedId(order.id);
+  setEditItems(order.items.map((it) => ({ ...it })));
+  setDeletedDetailIds([]);
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -121,14 +142,21 @@ function OrdersContent() {
   const tabCounts = {
     전체: orders.length,
     "처리 대기": orders.filter((o) => o.status === "처리 대기").length,
+    "수정됨": orders.filter((o) => o.status === "수정됨").length,
     "처리 완료": orders.filter((o) => o.status === "처리 완료").length,
     "주문 취소": orders.filter((o) => o.status === "주문 취소").length,
   };
 
-  const editSubtotal = editItems.reduce((acc, it) => acc + it.price * it.qty, 0);
+  const editSubtotal = editItems
+  .filter((item) => item.status !== "DETAIL_CANCELED")
+  .reduce((acc, item) => acc + item.price * item.qty, 0);
 
 const handleSaveEdit = async () => {
-  if (editItems.length === 0) {
+  const activeEditItems = editItems.filter(
+    (item) => item.status !== "DETAIL_CANCELED"
+  );
+
+  if (activeEditItems.length === 0) {
     alert("주문 상품은 최소 1개 이상이어야 합니다.");
     return;
   }
@@ -139,7 +167,7 @@ const handleSaveEdit = async () => {
 
   const orderId = Number(selectedOrder.id);
 
-  const details = editItems.map((item) => ({
+  const details = activeEditItems.map((item) => ({
     detailId: item.detailId,
     productId: item.productId,
     quantity: item.qty,
@@ -240,7 +268,7 @@ const handleSaveEdit = async () => {
           </p>
 
           <div className="flex gap-2 mt-4.5">
-            {(["전체", "처리 대기", "처리 완료", "주문 취소"] as const).map((tab) => {
+            {(["전체", "처리 대기", "수정됨", "처리 완료", "주문 취소"] as const).map((tab) => {
               const active = currentTab === tab;
               return (
                 <button
@@ -298,7 +326,7 @@ const handleSaveEdit = async () => {
                       {order.amount.toLocaleString("ko-KR")}원
                     </div>
 
-                    {isSelected && order.status === "처리 대기" && (
+                    {isSelected && (order.status === "처리 대기" || order.status === "수정됨") && (
                       <div className="flex mt-3.5 pt-2 border-t border-line2">
                         <button
                           type="button"
@@ -324,7 +352,7 @@ const handleSaveEdit = async () => {
             <div className="w-full lg:w-[420px] flex-none bg-white border border-line rounded-[12px] p-5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold tracking-[-0.01em] text-[16px] text-ink">
-                  {selectedOrder.status === "처리 대기"
+                  {isEditableOrder
                     ? "주문 상세 · 수정"
                     : "주문 상세"}
                 </span>
@@ -362,16 +390,24 @@ const handleSaveEdit = async () => {
                     key={item.detailId}
                     className="flex items-center gap-2.5 p-2.5 border border-line2 rounded-[9px] bg-page"
                   >
-                    <div className="flex-1 min-w-0 text-[13px] font-medium text-ink truncate">
-                      {item.productName}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium text-ink truncate">
+                        {item.productName}
+                      </div>
+
+                      {item.status === "DETAIL_CANCELED" && (
+                        <div className="text-[11px] text-danger mt-0.5">
+                          주문 취소
+                        </div>
+                      )}
                     </div>
 
                     <QtyStepper
                       quantity={item.qty}
                       min={1}
-                      disabled={selectedOrder.status !== "처리 대기"}
+                      disabled={!isEditableOrder || item.status === "DETAIL_CANCELED"}
                       onIncrease={() => {
-                        if (selectedOrder.status !== "처리 대기") return;
+                        if (!isEditableOrder || item.status === "DETAIL_CANCELED") return;
 
                         setEditItems((prev) =>
                           prev.map((x, i) =>
@@ -380,7 +416,7 @@ const handleSaveEdit = async () => {
                         );
                       }}
                       onDecrease={() => {
-                        if (selectedOrder.status !== "처리 대기") return;
+                        if (!isEditableOrder || item.status === "DETAIL_CANCELED") return;
 
                         setEditItems((prev) =>
                           prev.map((x, i) =>
@@ -394,33 +430,48 @@ const handleSaveEdit = async () => {
                       {(item.price * item.qty).toLocaleString("ko-KR")}원
                     </div>
 
-                    {selectedOrder.status === "처리 대기" && (
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          // X 누른 상세주문 ID를 기억
-                          setDeletedDetailIds((prev) => [
-                            ...prev,
-                            item.detailId,
-                          ]);
+                    {isEditableOrder && (
+                      item.status !== "DETAIL_CANCELED" ? (
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const activeCount = editItems.filter(
+                              (x) => x.status !== "DETAIL_CANCELED"
+                            ).length;
 
-                          // 화면에서는 제거
-                          setEditItems((prev) =>
-                            prev.filter((_, i) => i !== idx)
-                          );
-                        }}
-                        className="w-6 h-6 flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
-                        title="항목 제거"
-                      > 
-                        ×
-                      </button>
-                      )}
+                            if (activeCount <= 1) {
+                              alert("주문 상품은 최소 1개 이상이어야 합니다.");
+                              return;
+                            }
+
+                            setDeletedDetailIds((prev) => [
+                              ...prev,
+                              item.detailId,
+                            ]);
+
+                            setEditItems((prev) =>
+                              prev.map((x, i) =>
+                                i === idx
+                                  ? { ...x, status: "DETAIL_CANCELED" }
+                                  : x
+                              )
+                            );
+                          }}
+                          className="w-6 h-6 flex-none flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
+                          title="항목 제거"
+                        >
+                          ×
+                        </button>
+                      ) : (
+                        <div className="w-6 h-6 flex-none" />
+                      )
+                    )}
                   </div>
                 ))}
               </div>
 
               {/* Buttons */}
-              {selectedOrder.status === "처리 대기" && (
+              {isEditableOrder && (
                 <div className="flex gap-2 mt-5">
                   <button
                     type="button"
@@ -432,7 +483,9 @@ const handleSaveEdit = async () => {
 
                   <button
                     type="button"
-                    onClick={() => handleSelectOrder(selectedOrder)}
+                    onClick={() => {
+                      handleSelectOrder(selectedOrder);
+                    }}
                     className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
                   >
                     취소

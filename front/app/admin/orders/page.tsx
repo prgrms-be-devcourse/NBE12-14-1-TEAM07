@@ -15,11 +15,13 @@ interface AdminOrderRow {
   amount: string;
   time: string;
   createDate: string;
-  status: "처리 가능" | "처리 완료";
+  status: "처리 가능" | "수정됨" | "처리 완료";
 }
 
 function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
-  const activeDetails = o.ordersDetails.filter((d) => d.status !== "CANCELED");
+  const activeDetails = o.ordersDetails.filter(
+    (d) => d.status !== "CANCELED" && d.status !== "DETAIL_CANCELED"
+  );
   const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
 
   return {
@@ -29,7 +31,12 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     amount: `${total.toLocaleString("ko-KR")}원`,
     time: o.createDate.split("T")[1].slice(0, 5),
     createDate: o.createDate,
-    status: o.orderStatus === "COMPLETED" ? "처리 완료" : "처리 가능",
+    status:
+    o.orderStatus === "COMPLETED"
+      ? "처리 완료"
+      : o.orderStatus === "MODIFIED"
+        ? "수정됨"
+        : "처리 가능",
   };
 }
 
@@ -72,16 +79,25 @@ export default function AdminOrdersPage() {
   const totalCount = orders.length;
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
+  const modifiedCount = orders.filter((r) => r.status === "수정됨").length;
 
   const sortedOrders = [...orders].sort((a, b) => {
     const dateDiff = new Date(a.createDate).getTime() - new Date(b.createDate).getTime();
     const timeOrdered = dateOrder === "desc" ? -dateDiff : dateDiff;
 
     if (activeSort === "status") {
-      const rank = (s: AdminOrderRow["status"]) =>
-        statusOrder === "ready-first"
-          ? s === "처리 가능" ? 0 : 1
-          : s === "처리 완료" ? 0 : 1;
+      const rank = (s: AdminOrderRow["status"]) => {
+        if (statusOrder === "ready-first") {
+          if (s === "처리 가능") return 0;
+          if (s === "수정됨") return 1;
+          return 2;
+        }
+
+        if (s === "처리 완료") return 0;
+        if (s === "수정됨") return 1;
+        return 2;
+      };
+
       const statusDiff = rank(a.status) - rank(b.status);
       return statusDiff !== 0 ? statusDiff : timeOrdered;
     }
@@ -91,12 +107,17 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = sortedOrders.filter((r) => {
     if (filter === "전체") return true;
+
+    if (filter === "처리 가능") {
+      return r.status === "처리 가능" || r.status === "수정됨";
+    }
+
     return r.status === filter;
   });
 
   // Batch process all ready orders for the selected delivery date
   const handleBatchProcess = async () => {
-    if (readyCount === 0) {
+    if (readyCount + modifiedCount === 0) {
       setProcessResult({ type: "empty" });
       return;
     }
@@ -194,7 +215,7 @@ export default function AdminOrdersPage() {
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
               <div className="text-[12px] text-faint font-medium">처리 가능</div>
               <div className="text-[23px] font-extrabold tracking-[-0.01em] text-info-fg mt-1">
-                {readyCount}건
+                {readyCount + modifiedCount}건
               </div>
             </div>
           </div>
@@ -204,7 +225,8 @@ export default function AdminOrdersPage() {
             {[
               { label: "전체", count: totalCount },
               { label: "처리 완료", count: completedCount },
-              { label: "처리 가능", count: readyCount },
+              { label: "처리 가능", count: readyCount + modifiedCount},
+              { label: "수정됨", count: modifiedCount },
             ].map(({ label, count }) => {
               const active = filter === label;
               return (

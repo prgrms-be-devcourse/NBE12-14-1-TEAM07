@@ -11,6 +11,12 @@ export default function StatusPill({ status }: StatusPillProps) {
     case "COMPLETED":
       styleClasses = "bg-ok-bg text-ok-fg";
       break;
+
+    case "수정됨":
+    case "MODIFIED":
+      styleClasses = "bg-warn-bg text-warn-fg";
+      break;
+
     case "처리 불가":
       styleClasses = "bg-warn-bg text-warn-fg";
       break;
@@ -33,6 +39,8 @@ export default function StatusPill({ status }: StatusPillProps) {
       ? "처리 완료"
       : status === "CANCELED"
       ? "주문 취소"
+      : status === "MODIFIED"
+      ? "수정됨"
       : status;
 
   return (
