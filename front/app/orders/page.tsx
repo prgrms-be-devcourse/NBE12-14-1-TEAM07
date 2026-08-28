@@ -272,7 +272,7 @@ const handleSaveEdit = async () => {
                       {order.amount.toLocaleString("ko-KR")}원
                     </div>
 
-                    {isSelected && (
+                    {isSelected && order.status !== "처리 완료" && (
                       <div className="flex mt-3.5 pt-2 border-t border-line2">
                         <button
                           type="button"
@@ -341,7 +341,10 @@ const handleSaveEdit = async () => {
                     <QtyStepper
                       quantity={item.qty}
                       min={1}
+                      disabled={selectedOrder.status === "처리 완료"}
                       onIncrease={() => {
+                        if (selectedOrder.status === "처리 완료") return;
+
                         setEditItems((prev) =>
                           prev.map((x, i) =>
                             i === idx ? { ...x, qty: x.qty + 1 } : x
@@ -349,6 +352,8 @@ const handleSaveEdit = async () => {
                         );
                       }}
                       onDecrease={() => {
+                        if (selectedOrder.status === "처리 완료") return;
+
                         setEditItems((prev) =>
                           prev.map((x, i) =>
                             i === idx ? { ...x, qty: Math.max(1, x.qty - 1) } : x
@@ -361,46 +366,51 @@ const handleSaveEdit = async () => {
                       {(item.price * item.qty).toLocaleString("ko-KR")}원
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // X 누른 상세주문 ID를 기억
-                        setDeletedDetailIds((prev) => [
-                          ...prev,
-                          item.detailId,
-                        ]);
+                    {selectedOrder.status !== "처리 완료" && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          // X 누른 상세주문 ID를 기억
+                          setDeletedDetailIds((prev) => [
+                            ...prev,
+                            item.detailId,
+                          ]);
 
-                        // 화면에서는 제거
-                        setEditItems((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        );
-                      }}
-                      className="w-6 h-6 flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
-                      title="항목 제거"
-                    >
-                      ×
-                    </button>
+                          // 화면에서는 제거
+                          setEditItems((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          );
+                        }}
+                        className="w-6 h-6 flex items-center justify-center rounded-md text-faint text-[14px] hover:bg-danger-bg hover:text-danger transition-colors cursor-pointer"
+                        title="항목 제거"
+                      > 
+                        ×
+                      </button>
+                      )}
                   </div>
                 ))}
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-2 mt-5">
-                <button
-                  type="button"
-                  onClick={handleSaveEdit}
-                  className="flex-1 h-[42px] flex items-center justify-center bg-ink text-white rounded-[9px] text-[13.5px] font-semibold hover:bg-black transition-colors cursor-pointer"
-                >
-                  수정 저장
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSelectOrder(selectedOrder)}
-                  className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
-                >
-                  취소
-                </button>
-              </div>
+              {selectedOrder.status !== "처리 완료" && (
+                <div className="flex gap-2 mt-5">
+                  <button
+                    type="button"
+                    onClick={handleSaveEdit}
+                    className="flex-1 h-[42px] flex items-center justify-center bg-ink text-white rounded-[9px] text-[13.5px] font-semibold hover:bg-black transition-colors cursor-pointer"
+                  >
+                    수정 저장
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOrder(selectedOrder)}
+                    className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
+                  >
+                    취소
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
