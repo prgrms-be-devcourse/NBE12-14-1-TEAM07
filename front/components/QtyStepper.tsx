@@ -5,6 +5,7 @@ interface QtyStepperProps {
   onIncrease: () => void;
   onDecrease: () => void;
   min?: number;
+  disabled?: boolean;
 }
 
 export default function QtyStepper({
@@ -12,13 +13,14 @@ export default function QtyStepper({
   onIncrease,
   onDecrease,
   min = 0,
+  disabled = false,
 }: QtyStepperProps) {
   return (
     <div className="inline-flex items-center border border-field rounded-[7px] overflow-hidden bg-white select-none">
       <button
         type="button"
         onClick={onDecrease}
-        disabled={quantity <= min}
+        disabled={disabled || quantity <= min}
         className="w-[26px] h-[28px] flex items-center justify-center text-[14px] text-muted hover:bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
         aria-label="수량 감소"
       >
@@ -30,6 +32,7 @@ export default function QtyStepper({
       <button
         type="button"
         onClick={onIncrease}
+        disabled={disabled}
         className="w-[26px] h-[28px] flex items-center justify-center text-[14px] text-muted hover:bg-hover transition-colors cursor-pointer"
         aria-label="수량 증가"
       >
