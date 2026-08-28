@@ -143,7 +143,7 @@ public class OrdersService {
                 .findFirst()
                 .orElseThrow(() -> new OrdersDetailNotFoundException(orderId, detailId));
 
-        detail.cancel();
+        order.getOrdersDetails().remove(detail);
     }
 
     public Orders findById(int id) {
