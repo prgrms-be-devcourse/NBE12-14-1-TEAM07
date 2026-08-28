@@ -70,6 +70,24 @@ export async function fetchProducts(): Promise<Product[]> {
   }
 }
 
+export interface CreateOrderRequest {
+  email: string;
+  ordersDetails: {
+    productId: number;
+    quantity: number;
+  }[];
+}
+export async function createOrder(data: CreateOrderRequest) {
+  const response = await fetch("http://localhost:8080/api/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("주문 처리에 실패했습니다.");
+  }
+  return response.json();
+}
 export async function fetchOrders(email: string, deliveryDate? : string): Promise<OrdersDto[]> {
   try {
 
@@ -150,7 +168,6 @@ export async function fetchMyOrders(email : string, deliveryDate? : string): Pro
     );
     throw error;
   }
-}
 
 export async function deleteOrder(id: number): Promise<void> {
   try {
@@ -170,24 +187,3 @@ export async function deleteOrder(id: number): Promise<void> {
   }
 }
 
-export async function createOrder(body: OrdersSaveReqBody): Promise<OrdersDto> {
-  try {
-    const res = await fetch(`${API_BASE}/api/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      throw new Error(`주문 등록 실패 (${res.status})`);
-    }
-
-    const json: RsData<OrdersDto> = await res.json();
-    return json.data;
-  } catch (error) {
-    console.error("서버에 주문을 등록하는데 실패했습니다.", error);
-    throw error;
-  }
-}
