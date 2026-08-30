@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.CANCELED;
 import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.COMPLETED;
 
 @Service
@@ -72,7 +73,7 @@ public class OrdersService {
 
         boolean modified = false;
 
-        for(OrderDetailModifyRequest request : reqbody.details()) {
+        for(OrderDetailModifyRequest request : reqBody.details()) {
             OrdersDetail detail = order.getOrdersDetails()
                     .stream()
                     .filter(d -> d.getId() == request.detailId())
@@ -158,21 +159,21 @@ public class OrdersService {
     }
 
     // 주문 취소 (하드 삭제 대신 status를 CANCELED로 변경 - 상세 항목도 함께 취소 처리)
-        @Transactional
-        public void deleteOrders(int id) {
-            Orders orders = findById(id);
+    @Transactional
+    public void cancelOrder(int id) {
+        Orders orders = findById(id);
 
-            if (orders.getStatus() == COMPLETED || orders.getStatus() == CANCELED) {
-                throw new InvalidOrderStatusException();
-            }
-
-            orders.cancel();
-            orders.getOrdersDetails().forEach(detail -> {
-                if (detail.getStatus() != OrderDetailStatus.DETAIL_CANCELED) {
-                    detail.cancel();
-                }
-            });
+        if (orders.getStatus() == COMPLETED || orders.getStatus() == CANCELED) {
+            throw new InvalidOrderStatusException();
         }
+
+        orders.cancel();
+        orders.getOrdersDetails().forEach(detail -> {
+            if (detail.getStatus() != OrderDetailStatus.DETAIL_CANCELED) {
+                detail.cancel();
+            }
+        });
+    }
 
     @Transactional
     public int completeOrders(LocalDate date) {
