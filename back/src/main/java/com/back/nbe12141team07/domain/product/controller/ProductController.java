@@ -5,6 +5,7 @@ import com.back.nbe12141team07.domain.product.entity.Product;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.global.jpa.entity.dto.RsData;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -19,6 +20,7 @@ import java.util.List;
 
 
 @RestController
+@Tag(name = "Product API", description = "상품 CRUD API")
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
@@ -35,7 +37,7 @@ public class ProductController {
     @PostMapping
     @Operation(summary = "상품 등록")
     @Transactional
-    public RsData<ProductDto> save(@Valid @RequestBody ProductSaveReqBody reqBody) {
+    public RsData<ProductDto> createProduct(@Valid @RequestBody ProductSaveReqBody reqBody) {
         Product product = productService.createProduct(reqBody.name, reqBody.price);
 
         return new RsData<>(
@@ -47,7 +49,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     @Operation(summary = "상품 단건 조회")
-    public ProductDto detail(@PathVariable int id) {
+    public ProductDto getProduct(@PathVariable int id) {
         Product product = productService.findById(id);
 
         return new ProductDto(product);
@@ -56,7 +58,7 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "상품 다건 조회")
     @Transactional
-    public List<ProductDto> list() {
+    public List<ProductDto> getProducts() {
         List<Product> productList = productService.findAll();
 
         List<ProductDto> productDtoList = productList.stream()
@@ -98,7 +100,7 @@ public class ProductController {
     @Operation(summary = "상품 삭제")
     @Transactional
     // 반환할 데이터가 없으므로 Void로 지정
-    public RsData<Void> delete(@PathVariable int id) {
+    public RsData<Void> deleteProduct(@PathVariable int id) {
         productService.deleteProduct(id);
 
         // RsData의 2개짜리 생성자를 사용하면 데이터는 null로

@@ -13,11 +13,7 @@ import com.back.nbe12141team07.domain.product.repository.ProductRepository;
 import com.back.nbe12141team07.domain.product.service.ProductService;
 import com.back.nbe12141team07.domain.users.entity.Users;
 import com.back.nbe12141team07.domain.users.repository.UsersRepository;
-import com.back.nbe12141team07.global.exception.OrdersDetailNotFoundException;
-import com.back.nbe12141team07.global.exception.OrdersNotFoundException;
-import com.back.nbe12141team07.global.exception.ProductNotFoundException;
 import com.back.nbe12141team07.global.exception.*;
-import com.back.nbe12141team07.domain.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.CANCELED;
 import static com.back.nbe12141team07.domain.orders.entity.OrderStatus.COMPLETED;
 
 @Service
@@ -67,7 +62,7 @@ public class OrdersService {
     }
 
     @Transactional
-    public List<OrdersDetail> modifyOrders(int orderId, OrderModifyRequest reqbody) {
+    public List<OrdersDetail> modifyOrder(int orderId, OrderModifyRequest reqBody) {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrdersNotFoundException(orderId));
 
@@ -100,7 +95,7 @@ public class OrdersService {
 
     }
 
-    public Orders createOrders(String email, List<OrdersDetailRequest> ordersDetails) {
+    public Orders createOrder(String email, List<OrdersDetailRequest> ordersDetails) {
 
         // 이메일과 권한("users")을 넣어 users 생성
         Users users = usersRepository.findByEmail(email)
