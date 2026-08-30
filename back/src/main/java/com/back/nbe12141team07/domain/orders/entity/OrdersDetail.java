@@ -25,10 +25,17 @@ public class OrdersDetail extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private OrderDetailStatus status = OrderDetailStatus.ORDERED;
 
-    public void updateOrder(Product product, int quantity) {
+    public boolean updateOrder(Product product, int quantity) {
+
         this.product = product;
-        this.quantity = quantity;
-        this.totalPrice = product.getPrice()*quantity;
+        if (this.quantity != quantity) {
+            this.quantity = quantity;
+            this.totalPrice = product.getPrice() * quantity;
+            this.status = OrderDetailStatus.MODIFIED;
+            return true;
+        }
+
+        return false;
     }
 
     public OrdersDetail(Orders orders, Product product, int quantity, int totalPrice) {
@@ -38,9 +45,14 @@ public class OrdersDetail extends BaseEntity {
         this.totalPrice = totalPrice;
     }
 
+    public void detailCancel() {
+        this.status = OrderDetailStatus.DETAIL_CANCELED;
+    }
+
     public void cancel() {
         this.status = OrderDetailStatus.CANCELED;
     }
+
     public void complete() {
         this.status = OrderDetailStatus.COMPLETED;
     }
