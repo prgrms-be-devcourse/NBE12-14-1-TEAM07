@@ -100,19 +100,20 @@ export default function AdminOrdersPage() {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
+      setOrders(data.map(toAdminOrderRow));
+    } catch {
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
-        setOrders(data.map(toAdminOrderRow));
-      } catch {
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadOrders();
   }, [deliveryDate]);
 
   // Filter calculations
@@ -167,8 +168,7 @@ export default function AdminOrdersPage() {
     try {
       const count = await completeOrders(ADMIN_EMAIL, deliveryDate);
       setProcessResult({ type: "success", count });
-      const data = await fetchOrders(ADMIN_EMAIL, deliveryDate);
-      setOrders(data.map(toAdminOrderRow));
+      await loadOrders();
     } catch {
       setProcessResult({ type: "error" });
     }
@@ -232,6 +232,15 @@ export default function AdminOrdersPage() {
               {statusOrder === "ready-first" ? "처리 가능 우선" : "처리 완료 우선"}
             </button>
             <div className="hidden sm:block flex-1" />
+            <button
+              type="button"
+              onClick={loadOrders}
+              disabled={loading}
+              title="주문 목록 새로고침"
+              className="h-[42px] px-3.5 bg-white border border-field rounded-[9px] text-[13px] font-semibold text-ink hover:bg-hover active:scale-[0.98] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <span className={`text-[15px] leading-none ${loading ? "animate-spin" : ""}`}>↻</span>
+            </button>
             <button
               type="button"
               onClick={handleBatchProcess}
