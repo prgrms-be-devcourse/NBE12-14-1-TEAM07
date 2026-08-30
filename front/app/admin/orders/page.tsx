@@ -312,11 +312,12 @@ export default function AdminOrdersPage() {
         {/* Orders Table */}
         <div className="m-[16px_28px_24px] bg-white border border-line rounded-[12px] overflow-hidden shadow-2xs">
           {/* Table Header */}
-          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_28px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
+          <div className="grid grid-cols-[100px_1.4fr_1.2fr_100px_70px_70px_90px_28px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
             <span>주문번호</span>
             <span>이메일</span>
             <span>상품</span>
             <span>금액</span>
+            <span>날짜</span>
             <span>시각</span>
             <span>상태</span>
             <span></span>
@@ -340,7 +341,7 @@ export default function AdminOrdersPage() {
                     {/* Main Row */}
                     <div
                       onClick={() => toggleExpand(row.id)}
-                      className={`grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_28px] gap-3 items-center px-4.5 py-3 text-[13px] transition-colors cursor-pointer select-none ${
+                      className={`grid grid-cols-[100px_1.4fr_1.2fr_100px_70px_70px_90px_28px] gap-3 items-center px-4.5 py-3 text-[13px] transition-colors cursor-pointer select-none ${
                         isExpanded ? "bg-selected/70 font-medium" : "hover:bg-hover/50 bg-white"
                       }`}
                     >
@@ -361,7 +362,9 @@ export default function AdminOrdersPage() {
                       <span className="font-semibold text-ink text-[13px]">
                         {row.amount}
                       </span>
-
+                    <span className="font-mono text-[12.5px] text-muted">
+                      {row.createDate.split("T")[0].slice(5).replace("-", "/")}
+                    </span>
                       {/* Time */}
                       <span className="font-mono text-[12.5px] text-muted">
                         {row.time}
