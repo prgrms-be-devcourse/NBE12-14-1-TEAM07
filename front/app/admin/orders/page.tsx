@@ -405,11 +405,17 @@ export default function AdminOrdersPage() {
                                   <div className="font-semibold text-ink truncate">
                                     {item.productName}
                                   </div>
-                                  {item.status === "DETAIL_CANCELED" && (
-                                    <div className="text-[11px] text-danger font-semibold mt-0.5">
-                                      주문 취소
-                                    </div>
-                                  )}
+                                {item.status === "DETAIL_CANCELED" && (
+                                  <div className="text-[11px] text-danger font-semibold mt-0.5">
+                                    주문 취소
+                                  </div>
+                                )}
+
+                                {item.status === "MODIFIED" && (
+                                  <div className="text-[11px] text-warn-fg font-semibold mt-0.5">
+                                    수정됨
+                                  </div>
+                                )}
                                 </div>
 
                                 <div className="flex items-center gap-4 shrink-0 text-right">

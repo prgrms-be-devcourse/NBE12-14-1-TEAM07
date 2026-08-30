@@ -422,6 +422,12 @@ const handleSaveEdit = async () => {
                           주문 취소
                         </div>
                       )}
+                      {item.status === "MODIFIED" && (
+                        <div className="text-[11px] text-warn-fg mt-0.5">
+                          수정됨
+                        </div>
+                      )}
+                      
                     </div>
 
                     <QtyStepper

@@ -14,8 +14,8 @@ export interface CartItem {
   quantity: number;
 }
 
-export type OrderStatus = "ORDERED" | "COMPLETED" | "CANCELED" | "MODIFIED";
-export type OrderDetailStatus = "ORDERED" | "CANCELED" | "COMPLETED" | "DETAIL_CANCELED";
+export type OrderStatus = "ORDERED" | "MODIFIED" | "CANCELED" | "COMPLETED";
+export type OrderDetailStatus = "ORDERED" | "MODIFIED" | "CANCELED" | "COMPLETED" | "DETAIL_CANCELED";
 
 export interface OrdersDetailDto {
   id : number;
