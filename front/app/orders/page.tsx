@@ -516,7 +516,7 @@ const handleSaveEdit = async () => {
                     }}
                     className="w-[90px] h-[42px] flex items-center justify-center border border-field text-muted rounded-[9px] text-[13.5px] font-semibold hover:bg-hover transition-colors cursor-pointer"
                   >
-                    취소
+                    되돌리기
                   </button>
                 </div>
               )}

@@ -17,7 +17,7 @@ export default function AdminHeader() {
           <Logo showSubtitle={false} adminBadge={true} />
         </div>
         <div className="text-[12.5px] text-muted">
-          admin@gridscircles.kr
+          admin@test.com
         </div>
       </div>
 
