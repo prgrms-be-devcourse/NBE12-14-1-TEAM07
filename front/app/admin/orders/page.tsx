@@ -15,7 +15,7 @@ interface AdminOrderRow {
   amount: string;
   time: string;
   createDate: string;
-  status: "처리 가능" | "처리 완료" | "취소됨";
+  status: "처리 가능" | "수정됨" | "처리 완료" | "취소됨";
 }
 
 function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
@@ -24,24 +24,30 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     (o.ordersDetails.length > 0 &&
       o.ordersDetails.every((d) => d.status === "CANCELED"));
 
-  const total = o.ordersDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+  const activeDetails = o.ordersDetails.filter(
+    (d) => d.status !== "CANCELED" && d.status !== "DETAIL_CANCELED"
+  );
+
+  const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
 
   const status: AdminOrderRow["status"] = isCanceled
     ? "취소됨"
     : o.orderStatus === "COMPLETED"
-    ? "처리 완료"
-    : "처리 가능";
+      ? "처리 완료"
+      : o.orderStatus === "MODIFIED"
+        ? "수정됨"
+        : "처리 가능";
 
   return {
     id: String(o.id),
     email: o.email,
-    items: `상품 ${o.ordersDetails.length}건`,
+    items: `상품 ${activeDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
     time: o.createDate.split("T")[1]?.slice(0, 5) || "",
     createDate: o.createDate,
     status,
   };
-}
+  }
 
 function todayString(): string {
   const now = new Date();
@@ -82,6 +88,7 @@ export default function AdminOrdersPage() {
   const totalCount = orders.length;
   const completedCount = orders.filter((r) => r.status === "처리 완료").length;
   const readyCount = orders.filter((r) => r.status === "처리 가능").length;
+  const modifiedCount = orders.filter((r) => r.status === "수정됨").length;
   const canceledCount = orders.filter((r) => r.status === "취소됨").length;
 
   const sortedOrders = [...orders].sort((a, b) => {
@@ -89,10 +96,20 @@ export default function AdminOrdersPage() {
     const timeOrdered = dateOrder === "desc" ? -dateDiff : dateDiff;
 
     if (activeSort === "status") {
-      const rank = (s: AdminOrderRow["status"]) =>
-        statusOrder === "ready-first"
-          ? s === "처리 가능" ? 0 : s === "처리 완료" ? 1 : 2
-          : s === "처리 완료" ? 0 : s === "처리 가능" ? 1 : 2;
+      const rank = (s: AdminOrderRow["status"]) => {
+        if (statusOrder === "ready-first") {
+          if (s === "처리 가능") return 0;
+          if (s === "수정됨") return 1;
+          if (s === "처리 완료") return 2;
+          return 3; // 취소됨
+        }
+
+        if (s === "처리 완료") return 0;
+        if (s === "처리 가능") return 1;
+        if (s === "수정됨") return 2;
+        return 3; // 취소됨
+      };
+
       const statusDiff = rank(a.status) - rank(b.status);
       return statusDiff !== 0 ? statusDiff : timeOrdered;
     }
@@ -102,12 +119,17 @@ export default function AdminOrdersPage() {
 
   const filteredOrders = sortedOrders.filter((r) => {
     if (filter === "전체") return true;
+
+    if (filter === "처리 가능") {
+      return r.status === "처리 가능" || r.status === "수정됨";
+    }
+
     return r.status === filter;
   });
 
   // Batch process all ready orders for the selected delivery date
   const handleBatchProcess = async () => {
-    if (readyCount === 0) {
+    if (readyCount + modifiedCount === 0) {
       setProcessResult({ type: "empty" });
       return;
     }
@@ -205,7 +227,7 @@ export default function AdminOrdersPage() {
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
               <div className="text-[12px] text-faint font-medium">처리 가능</div>
               <div className="text-[23px] font-extrabold tracking-[-0.01em] text-info-fg mt-1">
-                {readyCount}건
+                {readyCount + modifiedCount}건
               </div>
             </div>
             <div className="bg-white border border-line rounded-[11px] p-[14px_16px]">
@@ -221,7 +243,8 @@ export default function AdminOrdersPage() {
             {[
               { label: "전체", count: totalCount },
               { label: "처리 완료", count: completedCount },
-              { label: "처리 가능", count: readyCount },
+              { label: "처리 가능", count: readyCount + modifiedCount },
+              { label: "수정됨", count: modifiedCount },
               { label: "취소됨", count: canceledCount },
             ].map(({ label, count }) => {
               const active = filter === label;
