@@ -24,11 +24,15 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     (o.ordersDetails.length > 0 &&
       o.ordersDetails.every((d) => d.status === "CANCELED"));
 
-  const activeDetails = o.ordersDetails.filter(
-    (d) => d.status !== "CANCELED" && d.status !== "DETAIL_CANCELED"
-  );
+  // orderStatus가 "CANCELED"인 경우 status가 "CANCELED"인 상세 품목만 반영
+  // 그 외 정상/수정/완료 주문인 경우 유효한 활성 상세 품목만 반영
+  const targetDetails = isCanceled
+    ? o.ordersDetails.filter((d) => d.status === "CANCELED")
+    : o.ordersDetails.filter(
+        (d) => d.status !== "CANCELED" && d.status !== "DETAIL_CANCELED"
+      );
 
-  const total = activeDetails.reduce((sum, d) => sum + d.totalPrice, 0);
+  const total = targetDetails.reduce((sum, d) => sum + d.totalPrice, 0);
 
   const status: AdminOrderRow["status"] = isCanceled
     ? "취소됨"
@@ -41,13 +45,13 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
   return {
     id: String(o.id),
     email: o.email,
-    items: `상품 ${activeDetails.length}건`,
+    items: `상품 ${targetDetails.length}건`,
     amount: `${total.toLocaleString("ko-KR")}원`,
     time: o.createDate.split("T")[1]?.slice(0, 5) || "",
     createDate: o.createDate,
     status,
   };
-  }
+}
 
 function todayString(): string {
   const now = new Date();
