@@ -201,8 +201,11 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={() => {
-                setActiveSort("date");
-                setDateOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+                if (activeSort !== "date") {
+                  setActiveSort("date");
+                } else {
+                  setDateOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+                }
               }}
               className={`h-[42px] px-4 border rounded-[9px] text-[13px] font-semibold transition-colors cursor-pointer ${
                 activeSort === "date"
