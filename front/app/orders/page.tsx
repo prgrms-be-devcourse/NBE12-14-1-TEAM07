@@ -22,6 +22,7 @@ interface OrderItem {
 interface OrderRecord {
   id: string;
   date: string;
+  modifyDate: string;
   summary: string;
   amount: number;
   status: "처리 대기" | "수정됨" | "처리 완료" | "주문 취소";
@@ -63,6 +64,7 @@ function toOrderRecord(o: UserOrdersDto): OrderRecord {
   return {
     id: String(o.id),
     date: o.modifyDate.replace("T", " ").slice(0, 16),
+    modifyDate: o.modifyDate,
     summary,
     amount,
     status:
@@ -107,7 +109,12 @@ function OrdersContent() {
       try {
         setLoading(true);
         const data = await fetchMyOrders(userEmail);
-        const rows = data.map(toOrderRecord);
+        const rows = data
+          .map(toOrderRecord)
+          .sort(
+            (a, b) =>
+              new Date(b.modifyDate).getTime() - new Date(a.modifyDate).getTime()
+          );
         setOrders(rows);
         if (rows.length > 0) {
           setSelectedId(rows[0].id);
@@ -134,7 +141,12 @@ function OrdersContent() {
   setDeletedDetailIds([]);
   };
 
-  const filteredOrders = orders.filter((o) => {
+  const sortedOrders = [...orders].sort(
+    (a, b) =>
+      new Date(b.modifyDate).getTime() - new Date(a.modifyDate).getTime()
+  );
+
+  const filteredOrders = sortedOrders.filter((o) => {
     if (currentTab === "전체") return true;
     return o.status === currentTab;
   });
@@ -187,7 +199,12 @@ const handleSaveEdit = async () => {
 
     // 4. ⭐ 수정이 끝났으니 사용자 주문 다건 조회 다시 실행
     const data = await fetchMyOrders(userEmail);
-    const rows = data.map(toOrderRecord);
+    const rows = data
+      .map(toOrderRecord)
+      .sort(
+        (a, b) =>
+          new Date(b.modifyDate).getTime() - new Date(a.modifyDate).getTime()
+      );
 
     // 5. 왼쪽 주문 목록 최신 데이터로 변경
     setOrders(rows);
@@ -220,7 +237,12 @@ const handleSaveEdit = async () => {
 
       // 주문 취소 후 다건 조회를 다시 실행해 서버 상태와 맞춤
       const data = await fetchMyOrders(userEmail);
-      const rows = data.map(toOrderRecord);
+      const rows = data
+        .map(toOrderRecord)
+        .sort(
+          (a, b) =>
+            new Date(b.modifyDate).getTime() - new Date(a.modifyDate).getTime()
+        );
       setOrders(rows);
 
      // 삭제한 주문이 선택 상태였다면 첫 번째 주문으로 이동
