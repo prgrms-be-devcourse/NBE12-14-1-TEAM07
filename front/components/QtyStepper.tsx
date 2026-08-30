@@ -33,7 +33,7 @@ export default function QtyStepper({
         type="button"
         onClick={onIncrease}
         disabled={disabled}
-        className="w-[26px] h-[28px] flex items-center justify-center text-[14px] text-muted hover:bg-hover transition-colors cursor-pointer"
+        className="w-[26px] h-[28px] flex items-center justify-center text-[14px] text-muted hover:bg-hover disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer disabled:cursor-not-allowed"
         aria-label="수량 증가"
       >
         +
