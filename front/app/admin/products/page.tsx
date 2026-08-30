@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { fetchProducts } from "@/lib/api";
 
 interface AdminProduct {
   id: number;
@@ -14,60 +15,53 @@ interface AdminProduct {
   imageUrl: string;
 }
 
-const INITIAL_ADMIN_PRODUCTS: AdminProduct[] = [
-  {
-    id: 1,
-    name: "하우스 블랜드",
-    price: 15000,
-    status: "판매중",
-    imageUrl: "/images/bean1.jpg",
-  },
-  {
-    id: 2,
-    name: "케냐",
-    price: 17000,
-    status: "판매중",
-    imageUrl: "/images/bean2.jpg",
-  },
-  {
-    id: 3,
-    name: "디카페인 하우스 블랜드",
-    price: 16000,
-    status: "판매중",
-    imageUrl: "/images/bean3.jpg",
-  },
-  {
-    id: 4,
-    name: "베란다 블랜드",
-    price: 15500,
-    status: "판매중",
-    imageUrl: "/images/bean4.jpg",
-  },
-  {
-    id: 5,
-    name: "디카페인 콜롬비아",
-    price: 15000,
-    status: "숨김",
-    imageUrl: "/images/bean1.jpg",
-  },
-];
-
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<AdminProduct[]>(INITIAL_ADMIN_PRODUCTS);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [formMode, setFormMode] = useState<"등록" | "수정">("수정");
-  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(
-    INITIAL_ADMIN_PRODUCTS[0]
-  );
+  const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(null);
 
   // Form states
-  const [formName, setFormName] = useState(INITIAL_ADMIN_PRODUCTS[0].name);
-  const [formPrice, setFormPrice] = useState(String(INITIAL_ADMIN_PRODUCTS[0].price));
-  const [formStatus, setFormStatus] = useState<"판매중" | "숨김">(INITIAL_ADMIN_PRODUCTS[0].status);
-  const [formImageUrl, setFormImageUrl] = useState<string>(INITIAL_ADMIN_PRODUCTS[0].imageUrl);
+  const [formName, setFormName] = useState("");
+  const [formPrice, setFormPrice] = useState("");
+  const [formStatus, setFormStatus] = useState<"판매중" | "숨김">("판매중");
+  const [formImageUrl, setFormImageUrl] = useState<string>("/productImages/bean1.jpg");
 
   // Delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null);
+
+  // Load products from API
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        const data = await fetchProducts();
+        if (data && data.length > 0) {
+          const mapped: AdminProduct[] = data.map((p) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            status: "판매중",
+            imageUrl: p.imageUrl || `/productImages/bean${p.id}.jpg`,
+          }));
+          setProducts(mapped);
+          handleSelectProduct(mapped[0]);
+        } else {
+          setProducts([]);
+          handleNewProduct();
+        }
+      } catch (err) {
+        console.error("Failed to load products:", err);
+        setProducts([]);
+        handleNewProduct();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
 
   // Select product to edit
   const handleSelectProduct = (prod: AdminProduct) => {
@@ -76,7 +70,7 @@ export default function AdminProductsPage() {
     setFormName(prod.name);
     setFormPrice(String(prod.price));
     setFormStatus(prod.status);
-    setFormImageUrl(prod.imageUrl);
+    setFormImageUrl(prod.imageUrl || `/productImages/bean${prod.id}.jpg`);
   };
 
   // Switch to new product mode
@@ -86,7 +80,7 @@ export default function AdminProductsPage() {
     setFormName("");
     setFormPrice("");
     setFormStatus("판매중");
-    setFormImageUrl("/images/bean1.jpg");
+    setFormImageUrl("/productImages/bean1.jpg");
   };
 
   // Save product form
@@ -124,7 +118,7 @@ export default function AdminProductsPage() {
         name: formName.trim(),
         price: priceNum,
         status: formStatus,
-        imageUrl: formImageUrl || "/images/bean1.jpg",
+        imageUrl: formImageUrl || "/productImages/bean1.jpg",
       };
       setProducts((prev) => [newProd, ...prev]);
       handleSelectProduct(newProd);
@@ -186,65 +180,75 @@ export default function AdminProductsPage() {
 
             {/* Table Rows */}
             <div className="divide-y divide-line3">
-              {products.map((prod) => {
-                const isSelected = formMode === "수정" && selectedProduct?.id === prod.id;
-                return (
-                  <div
-                    key={prod.id}
-                    className={`grid grid-cols-[52px_1fr_100px_80px_120px] gap-3 items-center px-4.5 py-2.5 transition-colors ${
-                      isSelected ? "bg-selected" : "bg-white hover:bg-hover/50"
-                    }`}
-                  >
-                    {/* Thumbnail */}
-                    <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-product-stripe border border-line2 shrink-0">
-                      <Image
-                        src={prod.imageUrl}
-                        alt={prod.name}
-                        fill
-                        sizes="36px"
-                        className="object-cover"
-                        unoptimized
-                      />
+              {loading ? (
+                <div className="py-16 text-center text-muted text-[13px]">
+                  상품 목록을 불러오는 중...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="py-16 text-center text-muted text-[13px]">
+                  등록된 상품이 없습니다.
+                </div>
+              ) : (
+                products.map((prod) => {
+                  const isSelected = formMode === "수정" && selectedProduct?.id === prod.id;
+                  return (
+                    <div
+                      key={prod.id}
+                      className={`grid grid-cols-[52px_1fr_100px_80px_120px] gap-3 items-center px-4.5 py-2.5 transition-colors ${
+                        isSelected ? "bg-selected" : "bg-white hover:bg-hover/50"
+                      }`}
+                    >
+                      {/* Thumbnail */}
+                      <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-product-stripe border border-line2 shrink-0">
+                        <Image
+                          src={prod.imageUrl}
+                          alt={prod.name}
+                          fill
+                          sizes="36px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+
+                      {/* Product Name */}
+                      <span className="text-[13.5px] font-semibold text-ink truncate">
+                        {prod.name}
+                      </span>
+
+                      {/* Price */}
+                      <span className="text-[13px] font-semibold text-ink">
+                        {prod.price.toLocaleString("ko-KR")}원
+                      </span>
+
+                      {/* Status */}
+                      <div>
+                        <StatusPill status={prod.status} />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-1.5 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectProduct(prod)}
+                          className="text-[12.5px] font-semibold px-2.5 py-1 rounded-[7px] border border-field text-ink hover:bg-hover transition-colors cursor-pointer"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductToDelete(prod);
+                            setDeleteModalOpen(true);
+                          }}
+                          className="text-[12.5px] font-semibold px-2.5 py-1 rounded-[7px] text-danger hover:bg-danger-bg transition-colors cursor-pointer"
+                        >
+                          삭제
+                        </button>
+                      </div>
                     </div>
-
-                    {/* Product Name */}
-                    <span className="text-[13.5px] font-semibold text-ink truncate">
-                      {prod.name}
-                    </span>
-
-                    {/* Price */}
-                    <span className="text-[13px] font-semibold text-ink">
-                      {prod.price.toLocaleString("ko-KR")}원
-                    </span>
-
-                    {/* Status */}
-                    <div>
-                      <StatusPill status={prod.status} />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-1.5 justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectProduct(prod)}
-                        className="text-[12.5px] font-semibold px-2.5 py-1 rounded-[7px] border border-field text-ink hover:bg-hover transition-colors cursor-pointer"
-                      >
-                        수정
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProductToDelete(prod);
-                          setDeleteModalOpen(true);
-                        }}
-                        className="text-[12.5px] font-semibold px-2.5 py-1 rounded-[7px] text-danger hover:bg-danger-bg transition-colors cursor-pointer"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
             {/* Notice Footer */}
@@ -274,7 +278,7 @@ export default function AdminProductsPage() {
                   type="text"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
-                  placeholder="예: 하우스 블랜드 200g"
+                  placeholder="예: 하우스 블렌드"
                   required
                   className="w-full h-9.5 px-3 border border-field rounded-lg text-[13px] text-ink bg-white focus:outline-none focus:border-ink transition-colors"
                 />

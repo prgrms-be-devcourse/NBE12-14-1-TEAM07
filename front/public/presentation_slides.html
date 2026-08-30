@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. 프로젝트 수행 경과 - 발표 슬라이드</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+    .slide-aspect {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      max-width: 1200px;
+    }
+    @media print {
+      body {
+        background-color: transparent !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .slide-page {
+        page-break-after: always;
+        break-after: page;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 100vw !important;
+        height: 56.25vw !important; /* 16:9 */
+        max-width: none !important;
+        max-height: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-6 px-4">
+
+  <!-- Top Toolbar -->
+  <header class="no-print w-full max-w-[1200px] flex items-center justify-between bg-slate-800/90 backdrop-blur text-white px-6 py-3.5 rounded-xl shadow-lg mb-6 border border-slate-700">
+    <div class="flex items-center gap-3">
+      <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+      <h1 class="font-bold text-[16px] tracking-tight">4. 프로젝트 수행 경과 (발표 자료)</h1>
+      <span class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md font-mono">총 7개 슬라이드</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition-colors flex items-center gap-1.5 cursor-pointer">
+        <span>🖨️ PDF로 저장 / 인쇄</span>
+      </button>
+      <button onclick="prevSlide()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg transition-colors cursor-pointer">◀ 이전</button>
+      <span id="slideIndicator" class="text-xs font-mono px-2">1 / 7</span>
+      <button onclick="nextSlide()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg transition-colors cursor-pointer">다음 ▶</button>
+    </div>
+  </header>
+
+  <!-- Slides Container -->
+  <main class="w-full max-w-[1200px] flex flex-col gap-10">
+
+    <!-- ==========================================
+         SLIDE 1: 데이터 모델 및 엔티티 설계 (ERD 포함)
+         ========================================== -->
+    <section id="slide-1" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Slide 01</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">데이터 모델 및 엔티티 설계 (ERD)</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main Content -->
+      <div class="grid grid-cols-12 gap-6 my-auto">
+        <!-- Left: ERD Diagram Box (7 cols) -->
+        <div class="col-span-7 bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Entity Relationship Diagram</span>
+            <span class="text-[11px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded">제1정규화 준수</span>
+          </div>
+          
+          <div class="flex items-center justify-between gap-2 text-center text-xs">
+            <!-- Users -->
+            <div class="bg-white border-2 border-indigo-200 rounded-lg p-3 shadow-xs flex-1">
+              <div class="font-bold text-indigo-700 border-b border-indigo-100 pb-1 mb-1.5">Users</div>
+              <div class="text-[11px] text-slate-600 space-y-0.5 text-left font-mono">
+                <div><span class="text-indigo-500 font-bold">PK</span> id (Long)</div>
+                <div><span class="text-amber-600 font-bold">UQ</span> email (String)</div>
+                <div>role (String)</div>
+              </div>
+            </div>
+            <div class="text-slate-400 font-bold text-sm">1:N ➔</div>
+            <!-- Orders -->
+            <div class="bg-white border-2 border-blue-200 rounded-lg p-3 shadow-xs flex-1">
+              <div class="font-bold text-blue-700 border-b border-blue-100 pb-1 mb-1.5">Orders</div>
+              <div class="text-[11px] text-slate-600 space-y-0.5 text-left font-mono">
+                <div><span class="text-blue-500 font-bold">PK</span> id (Long)</div>
+                <div><span class="text-slate-400 font-bold">FK</span> users_id</div>
+                <div>status (Enum)</div>
+                <div>createDate</div>
+              </div>
+            </div>
+            <div class="text-slate-400 font-bold text-sm">1:N ➔</div>
+            <!-- OrdersDetail -->
+            <div class="bg-white border-2 border-purple-200 rounded-lg p-3 shadow-xs flex-1">
+              <div class="font-bold text-purple-700 border-b border-purple-100 pb-1 mb-1.5">OrdersDetail</div>
+              <div class="text-[11px] text-slate-600 space-y-0.5 text-left font-mono">
+                <div><span class="text-purple-500 font-bold">PK</span> id (Long)</div>
+                <div><span class="text-slate-400 font-bold">FK</span> orders_id</div>
+                <div><span class="text-slate-400 font-bold">FK</span> product_id</div>
+                <div class="text-rose-600 font-semibold">totalPrice (스냅샷)</div>
+              </div>
+            </div>
+            <div class="text-slate-400 font-bold text-sm">N:1 ➔</div>
+            <!-- Products -->
+            <div class="bg-white border-2 border-slate-300 rounded-lg p-3 shadow-xs flex-1">
+              <div class="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-1.5">Products</div>
+              <div class="text-[11px] text-slate-600 space-y-0.5 text-left font-mono">
+                <div><span class="text-slate-500 font-bold">PK</span> id (Long)</div>
+                <div>name (String)</div>
+                <div>price (int)</div>
+                <div>imageUrl</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3.5 pt-2.5 border-t border-slate-200 text-[11.5px] text-slate-600 leading-relaxed">
+            💡 <strong>Aggregate Root 구조</strong>: <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">Orders</code>가 <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">OrdersDetail</code>의 생명주기를 통제 (<code class="text-indigo-600 font-semibold">CascadeType.ALL</code>, <code class="text-indigo-600 font-semibold">orphanRemoval=true</code>)
+          </div>
+        </div>
+
+        <!-- Right: Key Design Rationale (5 cols) -->
+        <div class="col-span-5 flex flex-col justify-between gap-3">
+          <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5">
+            <h3 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5 mb-1">
+              <span>🎯</span> N:M 관계 해소 & 1차 정규화
+            </h3>
+            <p class="text-[11.5px] text-slate-600 leading-relaxed">
+              주문과 상품의 다대다 관계를 <strong>OrdersDetail</strong> 연결 엔티티로 분리하여 복합 주문 품목을 정규화하고 중복 식별자 문제를 해결.
+            </p>
+          </div>
+
+          <div class="bg-rose-50/70 border border-rose-100 rounded-xl p-3.5">
+            <h3 class="text-xs font-bold text-rose-900 flex items-center gap-1.5 mb-1">
+              <span>🔒</span> 가격 스냅샷(Snapshot) 불변성 보장
+            </h3>
+            <p class="text-[11.5px] text-slate-600 leading-relaxed">
+              사후에 상품 가격이 변동되더라도 이미 체결된 주문 내역이 훼손되지 않도록, 주문 당시의 <strong>totalPrice(단가 × 수량)</strong>를 영속화하여 회계적 무결성 확보.
+            </p>
+          </div>
+
+          <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-3.5">
+            <h3 class="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+              <span>👤</span> 가벼운 고객 식별 체계
+            </h3>
+            <p class="text-[11.5px] text-slate-600 leading-relaxed">
+              복잡한 인증 테이블 대신 이메일 기반의 <strong>Users</strong> 엔티티를 활용하여 반복 주문 시 기존 계정을 탐색·연결하는 유연한 구조 구현.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>Spring Data JPA · Domain Entity Modeling</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 2: 도메인 CRUD 및 API 설계
+         ========================================== -->
+    <section id="slide-2" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Slide 02</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">도메인 CRUD 및 API 설계</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main Content: API Table -->
+      <div class="my-auto overflow-hidden">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+              <th class="p-2.5 pl-4 rounded-l-lg">도메인</th>
+              <th class="p-2.5">HTTP</th>
+              <th class="p-2.5 font-mono">Endpoint URI</th>
+              <th class="p-2.5">주요 기능 및 비즈니스 로직</th>
+              <th class="p-2.5 pr-4 rounded-r-lg font-mono">응답 구조 (RsData&lt;T&gt;)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-slate-700 text-[12px]">
+            <tr class="hover:bg-slate-50">
+              <td class="p-2.5 pl-4 font-bold text-indigo-700">Product</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">GET</span></td>
+              <td class="p-2.5 font-mono text-slate-900">/api/products</td>
+              <td class="p-2.5">전체 원두 상품 목록 조회 (정적 이미지 경로 매핑)</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">List&lt;Product&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50 bg-indigo-50/20">
+              <td class="p-2.5 pl-4 font-bold text-blue-700" rowspan="4">Orders</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">POST</span></td>
+              <td class="p-2.5 font-mono text-slate-900 font-semibold">/api/orders</td>
+              <td class="p-2.5"><strong>주문 등록</strong>: 원자적 다건 상세 등록, 서버 가격 계산</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;OrdersDto&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50 bg-indigo-50/20">
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">GET</span></td>
+              <td class="p-2.5 font-mono text-slate-900">/api/orders/me</td>
+              <td class="p-2.5"><strong>사용자 주문 다건 조회</strong>: 이메일 쿼리스트링 필터링</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;List&lt;UserOrdersDto&gt;&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50 bg-indigo-50/20">
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[10px]">GET</span></td>
+              <td class="p-2.5 font-mono text-slate-900">/api/orders</td>
+              <td class="p-2.5"><strong>관리자 주문 다건 조회</strong>: 관리자 권한 검증 및 배송일자별 조회</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;List&lt;OrdersDto&gt;&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50 bg-indigo-50/20">
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">DELETE</span></td>
+              <td class="p-2.5 font-mono text-slate-900">/api/orders/{id}</td>
+              <td class="p-2.5"><strong>주문 전체 취소</strong>: 주문 및 잔여 상세 품목 CANCELED 전이</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;Void&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-2.5 pl-4 font-bold text-purple-700">Detail</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-bold text-[10px]">DELETE</span></td>
+              <td class="p-2.5 font-mono text-slate-900">/api/orders/{id}/details/{detailId}</td>
+              <td class="p-2.5"><strong>주문 상세 부분 취소</strong>: 단일 품목 취소 처리 (DETAIL_CANCELED)</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;Void&gt;</td>
+            </tr>
+            <tr class="hover:bg-slate-50 bg-emerald-50/30">
+              <td class="p-2.5 pl-4 font-bold text-emerald-700">Batch</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px]">POST</span></td>
+              <td class="p-2.5 font-mono text-slate-900 font-semibold">/api/orders/{date}/complete</td>
+              <td class="p-2.5"><strong>주문 일괄 처리</strong>: 당일 14:00 기준 처리 대상 COMPLETED 일괄 전이</td>
+              <td class="p-2.5 pr-4 font-mono text-slate-500">RsData&lt;Integer&gt;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Feature Callouts -->
+        <div class="grid grid-cols-2 gap-4 mt-4 text-[11.5px]">
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-center gap-2">
+            <span class="text-indigo-600 font-bold">📦 표준 응답 래퍼:</span>
+            <span class="text-slate-600 font-mono">RsData&lt;T&gt; (resultCode, msg, data)</span>를 통한 프론트-백 응답 통일
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-center gap-2">
+            <span class="text-emerald-600 font-bold">🛡️ 전역 예외 처리:</span>
+            <span class="text-slate-600">@RestControllerAdvice</span> 기반 일관된 비즈니스 에러 규격 반환
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>RESTful API Specification · OpenAPI 3.0</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 3: 서비스 동작 흐름 (Service Flow)
+         ========================================== -->
+    <section id="slide-3" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Slide 03</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">서비스 동작 흐름 (Service Lifecycle Flow)</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main Flow Container (2 Tracks) -->
+      <div class="my-auto grid grid-cols-12 gap-6">
+        
+        <!-- User Flow Track (6 cols) -->
+        <div class="col-span-6 bg-blue-50/40 border border-blue-200 rounded-xl p-4.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3 border-b border-blue-100 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+              <h3 class="font-bold text-sm text-blue-950">사용자 주문 여정 (User Flow)</h3>
+            </div>
+            <span class="text-[11px] bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">클라이언트</span>
+          </div>
+
+          <!-- Step Nodes -->
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-blue-100 shadow-2xs">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]">1</span>
+              <span class="font-semibold text-slate-800">상품 카탈로그 조회 & 담기</span>
+              <span class="text-slate-400 text-[10px] ml-auto">GET /api/products</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-blue-100 shadow-2xs">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]">2</span>
+              <span class="font-semibold text-slate-800">이메일/주소 입력 및 주문 등록</span>
+              <span class="text-slate-400 text-[10px] ml-auto">POST /api/orders</span>
+            </div>
+            <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-blue-100 shadow-2xs">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]">3</span>
+              <span class="font-semibold text-slate-800">주문 완료 팝업 & 장바구니 자동 리셋</span>
+              <span class="text-emerald-600 font-bold text-[10px] ml-auto">스냅샷 분리</span>
+            </div>
+            <div class="flex items-center gap-2 bg-blue-100/70 p-2 rounded-lg border border-blue-200">
+              <span class="w-5 h-5 rounded-full bg-blue-800 text-white font-bold flex items-center justify-center text-[10px]">4</span>
+              <span class="font-bold text-blue-900">내 주문 조회 ➔ 수정/취소 분기</span>
+              <span class="text-blue-700 text-[10px] ml-auto">GET /api/orders/me</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pl-4 text-[11px]">
+              <div class="bg-white p-1.5 rounded border border-slate-200 text-slate-700 font-medium">✏️ 수량/품목 수정 (PATCH)</div>
+              <div class="bg-white p-1.5 rounded border border-slate-200 text-rose-700 font-medium">❌ 전체/상세 취소 (DELETE)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Flow Track (6 cols) -->
+        <div class="col-span-6 bg-slate-900 text-white rounded-xl p-4.5 flex flex-col justify-between shadow-md">
+          <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <h3 class="font-bold text-sm text-white">관리자 주문 처리 여정 (Admin Flow)</h3>
+            </div>
+            <span class="text-[11px] bg-slate-800 text-emerald-400 font-semibold px-2 py-0.5 rounded">백오피스</span>
+          </div>
+
+          <!-- Step Nodes -->
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center gap-2 bg-slate-800 p-2 rounded-lg border border-slate-700">
+              <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">1</span>
+              <span class="font-semibold text-slate-200">관리자 이메일 기반 권한 검증 및 입장</span>
+              <span class="text-slate-400 text-[10px] ml-auto">ENV WhiteList</span>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800 p-2 rounded-lg border border-slate-700">
+              <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">2</span>
+              <span class="font-semibold text-slate-200">배송일자 선택 및 4대 통계 카드 확인</span>
+              <span class="text-slate-400 text-[10px] ml-auto">GET /api/orders</span>
+            </div>
+            <div class="flex items-center gap-2 bg-slate-800 p-2 rounded-lg border border-slate-700">
+              <span class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 font-bold flex items-center justify-center text-[10px]">3</span>
+              <span class="font-semibold text-slate-200">주문 상태별 필터링 (처리 가능 / 완료 / 취소됨)</span>
+              <span class="text-slate-400 text-[10px] ml-auto">실시간 집계</span>
+            </div>
+            <div class="flex items-center gap-2 bg-emerald-950/80 p-2.5 rounded-lg border border-emerald-500/50">
+              <span class="w-5 h-5 rounded-full bg-emerald-400 text-slate-950 font-extrabold flex items-center justify-center text-[10px]">4</span>
+              <span class="font-bold text-emerald-300">당일 14:00 기준 주문 원클릭 [일괄 처리]</span>
+              <span class="text-emerald-400 font-mono text-[10px] ml-auto">POST .../complete</span>
+            </div>
+            <div class="text-[11px] text-slate-400 pl-4">
+              ➔ 14:00 이전 접수건 일괄 <code class="text-emerald-400">COMPLETED</code> 전이 (배송 시작)
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer: 14 Cutoff Banner -->
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 px-4 flex items-center justify-between text-xs text-amber-900">
+        <span class="font-bold flex items-center gap-1.5">
+          <span>⏰</span> 14:00 배송 컷오프 정책:
+        </span>
+        <span><strong>당일 14시 이전 주문</strong> ➔ 당일 배송 처리(COMPLETED)</span>
+        <span class="text-slate-300">|</span>
+        <span><strong>당일 14시 이후 주문</strong> ➔ 익일 배송 윈도우 할당 (익일 14시 처리 전까지 수정/취소 허용)</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 4: 주문 조회 및 권한 정책 구체화
+         ========================================== -->
+    <section id="slide-4" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Slide 04</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">주문 조회 및 권한 정책 구체화</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main 3-Column Box Grid -->
+      <div class="my-auto grid grid-cols-3 gap-5">
+        
+        <!-- Box 1: Problem / Dilemma -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-sm mb-3">⚠️</div>
+            <h3 class="font-bold text-sm text-slate-900 mb-2">초기 설계의 한계 & 의문점</h3>
+            <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc list-inside">
+              <li>세션/로그인이 없는 경량 스펙에서 <strong>관리자 기능 접근 제어</strong> 방안 모색 필요.</li>
+              <li>사용자가 타인의 이메일이나 ID만 알면 임의로 단건 조회가 가능한 취약점 존재.</li>
+              <li><code class="text-rose-600 bg-rose-50 px-1 py-0.5 rounded font-mono">/api/orders/{email}</code> 설계 시 단건 조회 <code class="font-mono">/api/orders/{id}</code>와의 Spring MVC URL 매핑 충돌 발생.</li>
+            </ul>
+          </div>
+          <span class="text-[11px] text-slate-400 border-t border-slate-200 pt-2 font-mono">Security & Routing Challenge</span>
+        </div>
+
+        <!-- Box 2: Decision & Policy -->
+        <div class="bg-indigo-50/50 border border-indigo-200 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm mb-3">🛡️</div>
+            <h3 class="font-bold text-sm text-indigo-950 mb-2">권한 분기 & 엔드포인트 격리</h3>
+            <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc list-inside">
+              <li><strong>관리자 이메일 환경변수화</strong>: <code class="text-indigo-700 font-mono bg-white px-1 py-0.5 rounded border border-indigo-100">admin.email</code>을 <code class="font-mono">.env</code>에 격리 보관.</li>
+              <li><strong>화이트리스트 인가 필터</strong>: 컨트롤러 진입부에서 <code class="text-indigo-700 font-mono">adminEmail.equalsIgnoreCase(email)</code> 검증, 불일치 시 <code class="text-rose-600 font-bold">403 FORBIDDEN</code> 차단.</li>
+              <li><strong>사용자 경로 분리</strong>: <code class="text-indigo-700 font-mono bg-white px-1 py-0.5 rounded border border-indigo-100">/api/orders/me?email=...</code> 쿼리 스트링 방식으로 경로 모호성 완전 해소.</li>
+            </ul>
+          </div>
+          <span class="text-[11px] text-indigo-500 border-t border-indigo-200 pt-2 font-mono">Role-Based Access Control</span>
+        </div>
+
+        <!-- Box 3: Scope Resolution -->
+        <div class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-3">🔍</div>
+            <h3 class="font-bold text-sm text-emerald-950 mb-2">역할별 조회 스코프 확립</h3>
+            <div class="space-y-2.5 text-xs text-slate-700">
+              <div class="bg-white p-2.5 rounded-lg border border-emerald-100 shadow-2xs">
+                <span class="font-bold text-emerald-800">👤 일반 사용자:</span>
+                <p class="text-[11.5px] text-slate-600 mt-0.5">자신의 이메일과 매핑된 당일 배송 대상 주문들만 제한 조회하여 개인정보 보호.</p>
+              </div>
+              <div class="bg-white p-2.5 rounded-lg border border-emerald-100 shadow-2xs">
+                <span class="font-bold text-slate-900">👑 관리자:</span>
+                <p class="text-[11.5px] text-slate-600 mt-0.5">특정 날짜(Date) 파라미터를 기준으로 당일 처리 대상인 <strong>전체 고객의 주문 목록</strong>을 일괄 조회.</p>
+              </div>
+            </div>
+          </div>
+          <span class="text-[11px] text-emerald-600 border-t border-emerald-200 pt-2 font-mono">Scoped Query Optimization</span>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>Environment Variable Authorization & RESTful Clean URL</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 5: 주문 상태 관리 방식 개선 (State Machine)
+         ========================================== -->
+    <section id="slide-5" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full">Slide 05</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">주문 상태 관리 방식 개선 (State Machine)</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="my-auto grid grid-cols-12 gap-6">
+        
+        <!-- Left: Evolution Comparison (5 cols) -->
+        <div class="col-span-5 flex flex-col justify-between gap-3">
+          <!-- Initial -->
+          <div class="bg-slate-100 border border-slate-300 rounded-xl p-3.5">
+            <span class="text-[10px] font-bold text-slate-500 uppercase">초기 상태 모델 (한계)</span>
+            <div class="mt-1.5 flex items-center gap-2 font-mono text-xs font-bold text-slate-700">
+              <span class="bg-white px-2 py-1 rounded border">ORDERED</span>
+              <span>➔</span>
+              <span class="bg-white px-2 py-1 rounded border">COMPLETED</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              수량 수정 여부, 상세 품목 취소, 전체 취소 구분이 불가능하여 관리자/사용자 간 변경 이력 추적 실패.
+            </p>
+          </div>
+
+          <!-- Extended State Machine -->
+          <div class="bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 shadow-xs">
+            <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">최종 2단계 상태 머신 구조</span>
+            
+            <div class="mt-2 space-y-2 text-xs">
+              <div class="bg-white p-2 rounded-lg border border-indigo-100">
+                <span class="font-bold text-blue-700 font-mono">Orders.status</span>
+                <div class="flex gap-1 mt-1 text-[10.5px] font-mono">
+                  <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">ORDERED</span>
+                  <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">MODIFYED</span>
+                  <span class="bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded">CANCELED</span>
+                </div>
+              </div>
+
+              <div class="bg-white p-2 rounded-lg border border-indigo-100">
+                <span class="font-bold text-purple-700 font-mono">OrdersDetail.status</span>
+                <div class="flex flex-wrap gap-1 mt-1 text-[10.5px] font-mono">
+                  <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">ORDERED</span>
+                  <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">MODIFYED</span>
+                  <span class="bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded">DETAIL_CANCELED</span>
+                  <span class="bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">CANCELED</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: State Transition Matrix (7 cols) -->
+        <div class="col-span-7 bg-slate-50 border border-slate-200 rounded-xl p-4.5 flex flex-col justify-between">
+          <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5 mb-2">
+            <span>🔄</span> 핵심 비즈니스 상태 전이 규칙 (Transition Rules)
+          </h3>
+
+          <div class="space-y-2 text-xs text-slate-700">
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <span class="font-bold text-slate-900">1. 주문 수량/품목 수정 시:</span>
+                <p class="text-[11px] text-slate-500">주문 엔티티 상태를 수정 상태로 전이</p>
+              </div>
+              <code class="bg-amber-100 text-amber-800 font-mono text-[11px] px-2 py-1 rounded font-bold">Orders ➔ MODIFYED</code>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <span class="font-bold text-slate-900">2. 특정 품목 상세 취소 시:</span>
+                <p class="text-[11px] text-slate-500">취소된 품목 상태 변경 및 주문 엔티티 동기화</p>
+              </div>
+              <div class="text-right font-mono text-[10.5px] space-y-0.5 font-bold">
+                <div class="bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded">Detail ➔ DETAIL_CANCELED</div>
+                <div class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">Orders ➔ MODIFYED</div>
+              </div>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <span class="font-bold text-slate-900">3. 주문 전체 취소 시:</span>
+                <p class="text-[11px] text-slate-500">기존 DETAIL_CANCELED 품목을 제외한 잔여 품목 전이</p>
+              </div>
+              <code class="bg-slate-800 text-white font-mono text-[11px] px-2 py-1 rounded font-bold">잔여 Detail ➔ CANCELED</code>
+            </div>
+
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <span class="font-bold text-slate-900">4. 14:00 관리자 일괄 처리 시:</span>
+                <p class="text-[11px] text-slate-500">취소되지 않은 정상/수정 주문 일괄 완료</p>
+              </div>
+              <code class="bg-emerald-100 text-emerald-800 font-mono text-[11px] px-2 py-1 rounded font-bold">전체 ➔ COMPLETED</code>
+            </div>
+          </div>
+
+          <div class="mt-2 text-[11px] text-indigo-700 font-medium">
+            ✨ 회의를 거쳐 단순 CANCELED 처리 대신 <strong>주문과 주문상세의 상태를 분리해 변경 이력을 완벽히 보존</strong>하도록 구체화.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>Dual-Layer State Machine & Lifecycle Tracking</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 6: 상세 취소 정책 결정 과정 (Deep Discussion)
+         ========================================== -->
+    <section id="slide-6" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-rose-100 text-rose-800 text-xs font-bold rounded-full">Slide 06</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">상세 취소 정책 결정 과정 (팀 심층 토론)</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main Debate Grid -->
+      <div class="my-auto grid grid-cols-12 gap-5">
+        
+        <!-- Left: Problem Demonstration (4 cols) -->
+        <div class="col-span-4 bg-rose-50/60 border border-rose-200 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[10.5px] font-bold text-rose-800 uppercase tracking-wider">구현 과정에서 발견된 문제</span>
+            <div class="bg-white p-2.5 rounded-lg border border-rose-200 font-mono text-xs mt-2 text-slate-800">
+              <div class="font-bold text-slate-900 mb-1">주문 #1 (상품 A, B, C)</div>
+              <div class="text-slate-500 pl-2">├─ 상품 A (취소 요청)</div>
+              <div class="text-emerald-700 font-bold pl-2">├─ 상품 B (유지)</div>
+              <div class="text-slate-500 pl-2">└─ 상품 C (취소 요청)</div>
+            </div>
+            
+            <div class="mt-3 text-xs text-rose-950 space-y-1.5 leading-relaxed">
+              <p>❌ <strong>기존 로직(행 삭제)</strong>: 상품 A, C의 행이 물리적으로 삭제되어 <span class="underline decoration-rose-500 font-bold">취소되었다는 사실 자체가 소실됨</span>.</p>
+              <p>❌ <strong>단순 CANCELED 처리</strong>: 추후 주문 전체 취소 시, '부분 취소된 품목'과 '마지막에 취소된 품목'을 구분 불가.</p>
+            </div>
+          </div>
+          <span class="text-[10.5px] text-rose-600 font-bold">⚠️ CS 분쟁 및 재고 파악 불가 위험</span>
+        </div>
+
+        <!-- Middle: Team Debate & Benchmark (4 cols) -->
+        <div class="col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+          <div>
+            <span class="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">팀 내 토론 및 이커머스 벤치마킹</span>
+            
+            <div class="mt-2 space-y-2 text-xs">
+              <div class="bg-white p-2 rounded-lg border border-slate-200">
+                <span class="font-bold text-slate-800">의견 ① (단순화):</span>
+                <p class="text-[11px] text-slate-500 mt-0.5">상세 취소는 결제 전 장바구니에서 뺀 것과 같으니 삭제 처리해도 무방하다.</p>
+              </div>
+
+              <div class="bg-white p-2 rounded-lg border border-indigo-200 bg-indigo-50/30">
+                <span class="font-bold text-indigo-900">의견 ② (데이터 보존 - 채택):</span>
+                <p class="text-[11px] text-slate-600 mt-0.5">사용자 뷰에서는 가릴 수 있어도, 관리자/데이터 관점에서는 취소 이력이 반드시 남아야 한다.</p>
+              </div>
+
+              <div class="bg-amber-50 p-2 rounded-lg border border-amber-200 text-[11px] text-amber-900">
+                <strong>🛒 외부 서비스(쿠팡 등) 사례 검토:</strong><br>
+                대형 이커머스 역시 주문 체결 후 부분 취소 시 이력을 보존하여 관리자 검수 및 정산 데이터로 활용함 확인.
+              </div>
+            </div>
+          </div>
+          <span class="text-[10.5px] text-slate-400 font-mono">E-Commerce Pattern Analysis</span>
+        </div>
+
+        <!-- Right: Final Architecture Decision (4 cols) -->
+        <div class="col-span-4 bg-emerald-950 text-white rounded-xl p-4 flex flex-col justify-between shadow-md">
+          <div>
+            <span class="text-[10.5px] font-bold text-emerald-400 uppercase tracking-wider">최종 아키텍처 결정</span>
+            
+            <div class="mt-2 bg-slate-900 p-3 rounded-lg border border-emerald-500/40 text-xs font-mono">
+              <div class="text-emerald-300 font-bold">상세 취소 발생 시:</div>
+              <div class="pl-2 text-slate-300 mt-1">
+                ➔ OrdersDetail = <span class="text-rose-400 font-bold">DETAIL_CANCELED</span><br>
+                ➔ Orders.status = <span class="text-amber-400 font-bold">MODIFYED</span>
+              </div>
+            </div>
+
+            <div class="mt-3 space-y-1.5 text-xs text-slate-200 leading-relaxed">
+              <div class="flex items-center gap-1.5">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>주문 수정 여부 실시간 확인 가능</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>상세 취소 히스토리 완벽 보존</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>관리자/사용자 뷰에서 정확한 상태 표현</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-emerald-400 border-t border-slate-800 pt-2 font-semibold">
+            단순 삭제 ➔ 상태 기반 관리로 패러다임 전환
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>Decision Making Process · Soft Delete & History Preservation</span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 7: 피드백 ➔ 문제 ➔ 개선 (Troubleshooting)
+         ========================================== -->
+    <section id="slide-7" class="slide-page slide-aspect bg-white rounded-2xl p-8 sm:p-10 shadow-2xl border border-slate-200 flex flex-col justify-between relative overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">Slide 07</span>
+          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">피드백 ➔ 문제 ➔ 개선 (핵심 트러블슈팅 4선)</h2>
+        </div>
+        <span class="text-xs font-semibold text-slate-400">4. 프로젝트 수행 경과</span>
+      </div>
+
+      <!-- Main 4 Troubleshooting Cards (2x2 Grid) -->
+      <div class="my-auto grid grid-cols-2 gap-4">
+        
+        <!-- Card 1: User Duplication -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+              <span class="text-rose-600 font-extrabold">01.</span> 동일 이메일 User 중복 생성 버그
+            </span>
+            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">Commit 34a5db4</span>
+          </div>
+          <div class="text-[11.5px] space-y-1 text-slate-600 leading-snug">
+            <p><strong class="text-rose-700">[문제]</strong> 주문 시마다 새 User가 생성되어 고객 ID가 파편화됨.</p>
+            <p><strong class="text-indigo-700">[피드백]</strong> 이메일 기준 기존 사용자 존재 여부 선행 확인 필요.</p>
+            <p><strong class="text-emerald-700 font-semibold">[개선]</strong> <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">findByEmail</code>로 기존 User 재사용 + email 컬럼에 UNIQUE 제약 추가.</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Modification after Completion -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+              <span class="text-rose-600 font-extrabold">02.</span> 14시 처리 완료 후 주문 수정 가능 결함
+            </span>
+            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">State Guard</span>
+          </div>
+          <div class="text-[11.5px] space-y-1 text-slate-600 leading-snug">
+            <p><strong class="text-rose-700">[문제]</strong> 이미 배송 처리(COMPLETED)된 주문이 수정/취소되는 결함 발생.</p>
+            <p><strong class="text-indigo-700">[피드백]</strong> 처리 확정 이후에는 사용자/관리자 모두 변경 차단 필요.</p>
+            <p><strong class="text-emerald-700 font-semibold">[개선]</strong> Back에서 <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">InvalidOrderStatusException</code> 방어 + Front 수정/삭제 UI 비활성화.</p>
+          </div>
+        </div>
+
+        <!-- Card 3: Scope Ambiguity -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+              <span class="text-rose-600 font-extrabold">03.</span> 사용자와 관리자의 주문 조회 범위 모호성
+            </span>
+            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">Role Partitioning</span>
+          </div>
+          <div class="text-[11.5px] space-y-1 text-slate-600 leading-snug">
+            <p><strong class="text-rose-700">[문제]</strong> 단일 주문 조회 엔드포인트로 인해 역할별 조회 범위가 혼재됨.</p>
+            <p><strong class="text-indigo-700">[피드백]</strong> 사용자는 본인 주문 중심, 관리자는 날짜별 전체 주문으로 분리.</p>
+            <p><strong class="text-emerald-700 font-semibold">[개선]</strong> 사용자: <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">/api/orders/me</code> / 관리자: <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">/api/orders?deliveryDate=...</code> 완전 분리.</p>
+          </div>
+        </div>
+
+        <!-- Card 4: Inconsistent Exception Handling -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+              <span class="text-rose-600 font-extrabold">04.</span> 도메인별 예외 처리 파편화 위험
+            </span>
+            <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">Global Architecture</span>
+          </div>
+          <div class="text-[11.5px] space-y-1 text-slate-600 leading-snug">
+            <p><strong class="text-rose-700">[문제]</strong> 상품 미존재, 가격 음수 입력 등 예외 응답 규격이 제각각으로 작성될 우려.</p>
+            <p><strong class="text-indigo-700">[피드백]</strong> 예외 클래스 상속 계층화 및 글로벌 가로채기 핸들러 도입 필요.</p>
+            <p><strong class="text-emerald-700 font-semibold">[개선]</strong> <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">BusinessException</code> 부모화 + 세부 Exception 분기 + <code class="bg-white px-1 py-0.5 rounded border text-[11px] font-mono">GlobalExceptionHandler</code> 적용.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 pt-3">
+        <span>NBE12-14-1-TEAM07</span>
+        <span>Iterative Engineering & Continuous Feedback Integration</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script for Navigation -->
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    function updateIndicator() {
+      document.getElementById('slideIndicator').innerText = currentSlide + ' / ' + totalSlides;
+    }
+
+    function showSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+      const el = document.getElementById('slide-' + currentSlide);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      updateIndicator();
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+  </script>
+</body>
+</html>
