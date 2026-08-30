@@ -4,9 +4,19 @@ import { useState, useEffect } from "react";
 import AdminHeader from "@/components/AdminHeader";
 import StatusPill from "@/components/StatusPill";
 import { fetchOrders, completeOrders } from "@/lib/api";
-import { OrdersDto } from "@/lib/types";
+import { OrdersDto, OrderDetailStatus } from "@/lib/types";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@test.com";
+
+interface AdminOrderItem {
+  detailId: number;
+  productId: number;
+  productName: string;
+  qty: number;
+  price: number;
+  totalPrice: number;
+  status: OrderDetailStatus;
+}
 
 interface AdminOrderRow {
   id: string;
@@ -16,6 +26,7 @@ interface AdminOrderRow {
   time: string;
   createDate: string;
   status: "처리 가능" | "수정됨" | "처리 완료" | "취소됨";
+  details: AdminOrderItem[];
 }
 
 function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
@@ -23,6 +34,16 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     o.orderStatus === "CANCELED" ||
     (o.ordersDetails.length > 0 &&
       o.ordersDetails.every((d) => d.status === "CANCELED"));
+
+  const details: AdminOrderItem[] = o.ordersDetails.map((d) => ({
+    detailId: d.id,
+    productId: d.productId,
+    productName: d.productName,
+    qty: d.quantity,
+    price: d.quantity > 0 ? d.totalPrice / d.quantity : 0,
+    totalPrice: d.totalPrice,
+    status: d.status,
+  }));
 
   // orderStatus가 "CANCELED"인 경우 status가 "CANCELED"인 상세 품목만 반영
   // 그 외 정상/수정/완료 주문인 경우 유효한 활성 상세 품목만 반영
@@ -50,6 +71,7 @@ function toAdminOrderRow(o: OrdersDto): AdminOrderRow {
     time: o.createDate.split("T")[1]?.slice(0, 5) || "",
     createDate: o.createDate,
     status,
+    details,
   };
 }
 
@@ -69,9 +91,14 @@ export default function AdminOrdersPage() {
   const [dateOrder, setDateOrder] = useState<"desc" | "asc">("desc");
   const [activeSort, setActiveSort] = useState<"date" | "status">("date");
   const [statusOrder, setStatusOrder] = useState<"ready-first" | "completed-first">("ready-first");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [processResult, setProcessResult] = useState<
     { type: "success"; count: number } | { type: "error" } | { type: "empty" } | null
   >(null);
+
+  const toggleExpand = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -273,13 +300,14 @@ export default function AdminOrdersPage() {
         {/* Orders Table */}
         <div className="m-[16px_28px_24px] bg-white border border-line rounded-[12px] overflow-hidden shadow-2xs">
           {/* Table Header */}
-          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
+          <div className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_28px] gap-3 items-center px-4.5 py-3 bg-page border-b border-line2 text-[11.5px] font-semibold text-faint">
             <span>주문번호</span>
             <span>이메일</span>
             <span>상품</span>
             <span>금액</span>
             <span>시각</span>
             <span>상태</span>
+            <span></span>
           </div>
 
           {/* Table Rows */}
@@ -293,40 +321,115 @@ export default function AdminOrdersPage() {
                 해당 조건의 주문이 없습니다.
               </div>
             ) : (
-              filteredOrders.map((row) => (
-                <div
-                  key={row.id}
-                  className="grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px] gap-3 items-center px-4.5 py-3 text-[13px] hover:bg-hover/50 transition-colors"
-                >
-                  {/* Order ID */}
-                  <span className="font-mono text-[12px] text-muted truncate">
-                    {row.id}
-                  </span>
+              filteredOrders.map((row) => {
+                const isExpanded = expandedId === row.id;
+                return (
+                  <div key={row.id} className="flex flex-col">
+                    {/* Main Row */}
+                    <div
+                      onClick={() => toggleExpand(row.id)}
+                      className={`grid grid-cols-[130px_1fr_1.25fr_90px_70px_104px_28px] gap-3 items-center px-4.5 py-3 text-[13px] transition-colors cursor-pointer select-none ${
+                        isExpanded ? "bg-selected/70 font-medium" : "hover:bg-hover/50 bg-white"
+                      }`}
+                    >
+                      {/* Order ID */}
+                      <span className="font-mono text-[12px] text-muted truncate">
+                        {row.id}
+                      </span>
 
-                  {/* Email */}
-                  <span className="truncate text-ink">{row.email}</span>
+                      {/* Email */}
+                      <span className="truncate text-ink">{row.email}</span>
 
-                  {/* Items */}
-                  <span className="truncate text-body text-[12.5px]">
-                    {row.items}
-                  </span>
+                      {/* Items */}
+                      <span className="truncate text-body text-[12.5px]">
+                        {row.items}
+                      </span>
 
-                  {/* Amount */}
-                  <span className="font-semibold text-ink text-[13px]">
-                    {row.amount}
-                  </span>
+                      {/* Amount */}
+                      <span className="font-semibold text-ink text-[13px]">
+                        {row.amount}
+                      </span>
 
-                  {/* Time */}
-                  <span className="font-mono text-[12.5px] text-muted">
-                    {row.time}
-                  </span>
+                      {/* Time */}
+                      <span className="font-mono text-[12.5px] text-muted">
+                        {row.time}
+                      </span>
 
-                  {/* Status Pill */}
-                  <div>
-                    <StatusPill status={row.status} />
+                      {/* Status Pill */}
+                      <div>
+                        <StatusPill status={row.status} />
+                      </div>
+
+                      {/* Expand Chevron Icon */}
+                      <div className="flex justify-end text-faint text-[11px]">
+                        {isExpanded ? "▲" : "▼"}
+                      </div>
+                    </div>
+
+                    {/* Expanded Order Details Panel */}
+                    {isExpanded && (
+                      <div className="bg-page/70 px-6 py-4 border-t border-b border-line2 animate-in fade-in duration-150">
+                        <div className="bg-white border border-line rounded-[10px] p-4 shadow-2xs">
+                          <div className="flex items-center justify-between border-b border-line2 pb-2.5 mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-bold text-ink">상세 주문 내역</span>
+                              <span className="text-[11.5px] font-mono text-faint">
+                                (주문번호 #{row.id})
+                              </span>
+                            </div>
+                            <span className="text-[12px] text-muted font-medium">
+                              총 {row.details.length}개 항목
+                            </span>
+                          </div>
+
+                          {/* Details List */}
+                          <div className="flex flex-col gap-2">
+                            {row.details.map((item) => (
+                              <div
+                                key={item.detailId}
+                                className="flex items-center justify-between p-2.5 border border-line2 rounded-[8px] bg-page/50 text-[12.5px]"
+                              >
+                                <div className="flex-1 min-w-0 pr-3">
+                                  <div className="font-semibold text-ink truncate">
+                                    {item.productName}
+                                  </div>
+                                  {item.status === "DETAIL_CANCELED" && (
+                                    <div className="text-[11px] text-danger font-semibold mt-0.5">
+                                      주문 취소
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-4 shrink-0 text-right">
+                                  <span className="text-muted text-[12px]">
+                                    {item.qty}개
+                                  </span>
+                                  <span className="text-faint text-[12px]">
+                                    (개당 {item.price.toLocaleString("ko-KR")}원)
+                                  </span>
+                                  <span className="w-[80px] font-bold text-ink text-[13px]">
+                                    {item.totalPrice.toLocaleString("ko-KR")}원
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Subtotal Summary */}
+                          <div className="flex justify-between items-center mt-3.5 pt-3 border-t border-line2 text-[12.5px]">
+                            <span className="text-faint font-medium">
+                              {row.status === "취소됨" ? "취소된 주문 금액" : "합계 금액"}
+                            </span>
+                            <span className="text-[14.5px] font-extrabold text-ink">
+                              {row.amount}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
