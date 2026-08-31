@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: NBE12-14-1-TEAM07
+  profiles:
+    active: dev
+
+  output:
+    ansi:
+      enabled: always
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+springdoc:
+  default-produces-media-type: application/json
+  swagger-ui:
+    operations-sorter: method
+
+logging:
+  level:
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.springframework.transaction.interceptor: TRACE
+
+# 관리자 이메일 등록
+admin:
+  email: ${ADMIN_EMAIL:admin@test.com}
